@@ -4,16 +4,17 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-07-04T00:00:00Z",
-  "updated_at": "2026-11-06T01:42:55.506Z",
+  "updated_at": "2026-11-10T00:00:24.605Z",
   "phase": "audit",
-  "step": "pre-deploy-staging-preview-63222ed2",
+  "step": "pre-deploy-v2.1.1-2d22e630",
   "status": "complete",
-  "progress_summary": "Pre-deploy re-audit 2026-11-05 for staging preview 63222ed2 (delta e0ef5b10..63222ed2 is site-only ReleaseTag additions): PASS, 0 CRITICAL / 0 HIGH / 1 MEDIUM (zod 4.6.5 advisory, unreachable, carried) / 1 LOW (deploy.mjs OPCHAIN_SHIP_WORK guard, carried). Tags render nothing without PUBLIC_OPCHAIN_RELEASE_PREVIEW (0 in dist); 15 oc tags across 8 pages with it set.",
+  "progress_summary": "Pre-deploy audit 2026-11-09 of the 2.1.1 release candidate 2d22e630 (delta from the 2.1.0 PASS at 79316438: #680 managed AGENTS.md section, #681 Lighthouse fork-comment fix, #678 baseline, the 2.1.1 cut): PASS, grade A-, 0 CRITICAL / 0 HIGH / 1 MEDIUM carried (zod 4.6.5 advisory, re-verified unreachable: no array schema in the Worker) / 4 LOW (3 new on the AGENTS.md section: blocked-enrollment edge, unterminated start marker duplicates, no updater-installer parity test; 1 carried deploy.mjs guard). The findings_by_severity totals in skill_state are the 2026-09 full-audit census, all closed (loop_state closed), not open findings. Before the 2.2 cut ships ow-tools: Pillow 13.0.0 and certifi 2026.10.18 in plugins/ow-tools/python/uv.lock (6 critical Dependabot alerts, not shipped in 2.1.x).",
   "blockers": [],
   "next_actions": [
     "Bump zod to 4.6.6 (in-range ^4.6.5, GHSA-mrhx-c7xc-m3w5) in a follow-up lockfile PR",
-    "Consider refusing OPCHAIN_SHIP_WORK=1 in scripts/deploy.mjs production path until the 2.2 release",
-    "Add CODEOWNERS (or required review) on .github/workflows/ and .opchain/ before relying on the evidence:pr template in consumer repos"
+    "Before the 2.2 cut: bump Pillow to 13.0.0 and certifi to 2026.10.18 in plugins/ow-tools/python/uv.lock (6 critical alerts) before ow-tools ships",
+    "AGENTS.md section follow-ups: test for the managed pre-commit hook instead of the runtime directory; report a start marker without an end marker as a skip; add an updater-installer parity test",
+    "Consider refusing OPCHAIN_SHIP_WORK=1 in the scripts/deploy.mjs production path"
   ],
   "eval_scores": [
     {
@@ -184,7 +185,7 @@
         "verdict": "no findings"
       }
     ],
-    "verified_for_sha": "ddfcf1330ed64a2c0ff10ceef63dae58a628e4dd",
+    "verified_for_sha": "2d22e6300bf5ea1491f561d55707e2eee107e5ff",
     "current_finding": "F-001"
   },
   "handoffs": [
@@ -802,6 +803,34 @@
           "plugins/opchain/hooks/hooks.json"
         ]
       }
+    },
+    {
+      "id": "oc-code-auditor-pre-deploy-code-audit-v1-41ff2ed5b04c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-10T00:00:24.501Z",
+      "verified_at": "2026-11-10T00:00:24.501Z",
+      "producer": {
+        "skill": "oc-code-auditor",
+        "run_id": "pre-deploy-code-audit-v1-2026-11-10T00:00:24.501Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:41ff2ed5b04c6b615e293e83d31dc5926cc8f94041db5ecc71aeabff69b40c39"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-code-audit-v1",
+        "scope": "Pre-deploy audit of the 2.1.1 release candidate 2d22e630 (tag v2.1.1), delta since the PASSED 2.1.0 audit (79316438): (a) #680 b392ac37, read in full across two heads and exercised with 12 probe cases against the merged file (blob-identical to the reviewed copy): scripts/update-opchain.mjs plans the managed AGENTS.md write inside the existing atomic applyChanges (backup, journal, --check), reads two templates by exact bundle path under oc-update/templates/, adds the gate part only where <git-common-dir>/opchain/commit-gate exists, skips symlinks, non-files, an own-line off marker, --no-agents-md, and a template it cannot read (reported skip, skills still install); a v2-marker template replaces the same section; plugin-only path adds the local-state ignore rules; uncommitted warning covers AGENTS.md. scripts/install-git-drivers.mjs writes the section only under explicit --enroll or --agents-md, after the runtime is installed, never in the authoring repo, and a missing template cannot undo an enrollment. No new process spawn, eval, network call, env read or dependency; writes are confined to repo-root AGENTS.md and .gitignore. (b) #681 dcb19d8a: lighthouse.yml posts the score comment only for same-repository pull requests; a fork writes the summary to the run page under continue-on-error. (c) #678 and the 2.1.1 cut 60a208df: baseline JSON, version stamps, manifests, seal, changelog and site text, regenerated catalogs; deployed-surface delta is site/src/pages/changelog.astro, styleguide.astro and src/generated/mcp-catalog.json only; Worker source, wrangler.jsonc and both lockfiles unchanged. 0 CRITICAL / 0 HIGH. New LOW x3: gate text can be added where the runtime exists but enrollment was BLOCKED by a foreign pre-commit hook; a start marker with no end marker appends a second section; marker rules live in updater and installer with no parity test. Carried: 1 MEDIUM zod 4.6.5 GHSA-mrhx-c7xc-m3w5, re-verified unreachable (the advisory needs an unbounded array schema; src/lib/schemas.js uses only string, enum and object), 1 LOW deploy.mjs OPCHAIN_SHIP_WORK guard. Dependabot: 90 open alerts, all opened 2026-10-21..30, none since the 2.1.0 audit; the 6 critical (Pillow, certifi) and 51 others are in plugins/ow-tools/python/uv.lock, which is withheld from every 2.1.x output and absent from the public mirror; undici highs are build-time only for the static site. Commit gate PASS on tree b1371423 and CI green on 2d22e630.",
+        "evidence": [
+          "scripts/update-opchain.mjs",
+          "scripts/install-git-drivers.mjs",
+          "skills/oc-update/templates/AGENTS.opchain.md",
+          "skills/oc-update/templates/AGENTS.gate.md",
+          ".github/workflows/lighthouse.yml",
+          "src/lib/schemas.js"
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -811,7 +840,7 @@
     "blocking_findings": 0,
     "target": "staging preview from claude/staging-preview-2-1"
   },
-  "record_updated_at": "2026-11-06T01:42:55.506Z",
+  "record_updated_at": "2026-11-10T00:00:24.605Z",
   "recently_done": [
     {
       "at": "2026-09-21T13:40:12.755Z",

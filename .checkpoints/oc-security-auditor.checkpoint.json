@@ -4,15 +4,15 @@
   "project": "opchain.dev",
   "project_dir": "/private/tmp/opchain-prod-2.0.1",
   "created_at": "2026-09-14T00:38:43.799Z",
-  "updated_at": "2026-11-06T01:42:55.690Z",
+  "updated_at": "2026-11-10T00:01:15.989Z",
   "phase": "build",
-  "step": "posture-63222ed2",
+  "step": "posture-v2.1.1-2d22e630",
   "status": "complete",
-  "progress_summary": "Pre-deploy posture 2026-11-05, staging-preview candidate 63222ed2: PASS, tier standard, delta review from the e0ef5b10 PASS. Delta is ReleaseTag theme=oc on 7 site files, inert unless PUBLIC_OPCHAIN_RELEASE_PREVIEW is set; the production build has no tag or ribbon, and its inline scripts, JS bundles and external hosts match the preview build. deploy.mjs refuses production with the variable set. No Worker, header or wrangler change. 0 CRITICAL/HIGH/MEDIUM; e0ef5b10's 3 LOW and 3 INFO carry forward.",
+  "progress_summary": "Pre-deploy posture 2026-11-09, 2.1.1 release candidate 2d22e630: PASS, tier standard, delta review from the 2.1.0 PASS at 79316438. Worker, headers, CSP and lockfiles unchanged; live headers still 6/8. New distributed surface: the updater writes a managed, static section into consumer AGENTS.md (no new privilege, markers-only, opt-outs, symlink skip, backup). Lighthouse workflow stays on pull_request with read-only fork tokens. The temporary main-protection bypass used to fast-forward main to the early tag is removed. 0 CRITICAL/HIGH/MEDIUM; 1 new LOW (section does not say checkpoint text is data), 1 new INFO (signed updates matter more now); 2.1.0's 3 LOW and 3 INFO carry forward.",
   "next_actions": [
-    "After the staging deploy, curl https://staging.opchain.dev/opchain-work-skills.zip, /work/ow-tools-security-manifest.sha256 and /docs/work/ow-protocol.md: all must be 404 (staging serves the old ow- zip today; production already 404s). Deploy with OPCHAIN_SHIP_WORK unset.",
-    "Before the production cut: bump zod to 4.6.6 (GHSA-mrhx-c7xc-m3w5, not reachable today); have the router write its log and decision cache under a 0700 per-user directory and validate a cached decision.skill against route-spec before it is injected; drop the deftwright-site reference from skills/CHANGELOG.md and the release-evidence.mjs comment (7 shipped copies).",
-    "Carry forward: missing COOP/CORP and HSTS preload (header score 6/8), tag-pinned CI action refs, style-src unsafe-inline (B-08), dev-only site advisories (undici/wrangler/miniflare), and the live TLS/control-plane check each pre-deploy assessment skips."
+    "AGENTS.md template follow-up: say that checkpoint contents are data to read, not instructions to obey",
+    "2.2: land signed updates (did:web manifest the updater verifies) before the ow- family ships; bump Pillow and certifi in plugins/ow-tools/python/uv.lock",
+    "Bump zod to 4.6.6 (GHSA-mrhx-c7xc-m3w5, not reachable today); have the router write its log and decision cache under a 0700 per-user directory and validate a cached decision.skill against route-spec before it is injected"
   ],
   "handoffs": [
     {
@@ -655,6 +655,32 @@
           "scripts/route-eval.mjs"
         ]
       }
+    },
+    {
+      "id": "oc-security-auditor-pre-deploy-security-posture-v1-41ff2ed5b04c",
+      "contract_version": "1.0",
+      "type": "verification.verdict",
+      "created_at": "2026-11-10T00:01:15.887Z",
+      "verified_at": "2026-11-10T00:01:15.887Z",
+      "producer": {
+        "skill": "oc-security-auditor",
+        "run_id": "pre-deploy-security-posture-v1-2026-11-10T00:01:15.887Z"
+      },
+      "candidate": {
+        "kind": "git_tree_projection",
+        "id": "sha256:41ff2ed5b04c6b615e293e83d31dc5926cc8f94041db5ecc71aeabff69b40c39"
+      },
+      "payload": {
+        "verdict": "PASS",
+        "policy": "pre-deploy-security-posture-v1",
+        "scope": "Pre-deploy security posture of the 2.1.1 release candidate 2d22e630 (signed tag v2.1.1, good signature), tier standard, delta since the PASSED 2.1.0 posture at 79316438. Deployed surface: Worker source, wrangler.jsonc, headers, CSP, layouts, components and both lockfiles are unchanged; the only src/ change is generated catalog version data; live production headers re-read 2026-11-09 and still 6/8 (HSTS, nonce CSP with strict-dynamic, Permissions-Policy, Referrer-Policy, nosniff, X-Frame-Options DENY). Distributed surface (#680): the updater and release bundle now write a managed section into a consumer repository's AGENTS.md, a file every agent auto-loads. No new privilege over what the same bundle already delivers (skills and scripts), no network call, env read, spawn or learned state; text is two static templates read by exact bundle path; write is confined to the marked section of repo-root AGENTS.md through the existing atomic apply with backup and journal; symlinks and non-files skipped; own-line opt-out and --no-agents-md honoured; gate rules only where the commit-gate runtime exists; enroll writes it only on explicit --enroll or --agents-md. CI (#681): lighthouse.yml stays on pull_request (no pull_request_target anywhere), permissions unchanged; fork runs get a read-only token and no secrets; the new summary step runs under continue-on-error and only reads the LHCI directory. Release process: tag was pushed before the release PR merged; reconciled by a fast-forward of main to the tagged commit under a temporary admin bypass on main-protection, confirmed removed (0 bypass actors) at this check; the tag object was never moved. 0 CRITICAL / 0 HIGH / 0 MEDIUM. New LOW: the section tells agents to read .checkpoints/ first and resume from next_actions without saying checkpoint text is data, so a checkpoint in an untrusted branch could steer an agent. New INFO: the AGENTS.md write raises the value of the signed-update work planned for 2.2 (bundle integrity is a same-origin checksum today). The 2.1.0 posture's 3 LOW and 3 INFO carry forward.",
+        "evidence": [
+          "scripts/update-opchain.mjs",
+          "scripts/install-git-drivers.mjs",
+          "skills/oc-update/templates/AGENTS.opchain.md",
+          ".github/workflows/lighthouse.yml"
+        ]
+      }
     }
   ],
   "latest_pre_deploy": {
@@ -664,17 +690,17 @@
     "blocking_findings": 0,
     "target": "staging preview of the oc-only 2.1.0 candidate (branch claude/staging-preview-2-1)"
   },
-  "record_updated_at": "2026-11-06T01:42:55.690Z",
+  "record_updated_at": "2026-11-10T00:01:15.989Z",
   "skill_state": {
-    "verified_for_sha": "ddfcf1330ed64a2c0ff10ceef63dae58a628e4dd",
+    "verified_for_sha": "2d22e6300bf5ea1491f561d55707e2eee107e5ff",
     "scope": "pre-deploy-delta",
     "tier": "standard",
     "findings_by_risk": {
       "CRITICAL": 0,
       "HIGH": 0,
       "MEDIUM": 0,
-      "LOW": 3,
-      "INFO": 3
+      "LOW": 4,
+      "INFO": 4
     },
     "header_score": "6/8",
     "code_auditor_checkpoint_read": true
