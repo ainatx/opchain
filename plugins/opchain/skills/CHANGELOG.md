@@ -11,6 +11,28 @@ contract another skill depends on → called out as **BREAKING**. The on-disk
 checkpoint `protocol_version` is tracked separately (see
 `oc-checkpoint-protocol/SKILL.md`).
 
+## [Unreleased]
+
+### Fixed
+
+- **Checkpoint lock files no longer reach git in consumer repositories.** Every
+  mutating checkpoint verb (`update`, `done`, `reset`, `handoff`, `acceptance`)
+  leaves a zero-byte `.checkpoints/<skill>.checkpoint.json.lock` on disk. This
+  repository ignored it, nothing gave a consumer repository the rule, and one
+  committed two of them. The checkpoint CLI now adds `*.lock` and `.*.tmp` to
+  `.checkpoints/.gitignore` before it takes the lock, so an enrolled repository,
+  a skills-only install and a repository enrolled before this release are all
+  covered by their next checkpoint write, with no re-enrollment. `/oc-enroll`
+  (and `--ci`) writes the same two lines up front. Only missing lines are
+  appended and the repo-root `.gitignore` is not touched. `/oc-enroll --doctor`
+  prints a WARN, which does not fail the run, when the rule is absent, when only
+  this clone has it (`.git/info/exclude` or a global excludes file), or when a
+  lock file is already tracked, and `/oc-repo verify` blocks on a tracked one. A
+  lock file committed earlier stays tracked until
+  `git rm --cached -- '.checkpoints/*.lock'`. The lock file itself stays where
+  it was: removing it after release would let two writers hold the lock at
+  once, and the local MCP store locks the same path.
+
 ## [2.1.1] — 2026-11-09 — "An opchain section in AGENTS.md"
 
 One addition, contributed by dag618 (#680): agents that read `AGENTS.md` instead

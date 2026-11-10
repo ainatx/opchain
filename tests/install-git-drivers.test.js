@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  CHECKPOINT_IGNORE_PATH,
+  CHECKPOINT_IGNORE_PATTERNS,
   CI_WORKFLOW_PATH,
   CLAUDE_MD_END,
   CLAUDE_MD_START,
@@ -729,6 +731,123 @@ describe("--doctor", () => {
   });
 });
 
+// Every mutating checkpoint verb leaves a zero-byte `<skill>.checkpoint.json.lock`
+// beside the tracked checkpoints. A consumer repository committed two of them and
+// showed a new untracked one after each `checkpoint update`: nothing gave it the
+// ignore rule this repository has.
+describe("checkpoint lock files", () => {
+  const CHECKPOINT_CLI = join(ROOT, "scripts", "checkpoint.mjs");
+  const ignorePath = () => join(repo, CHECKPOINT_IGNORE_PATH);
+  const status = () => git(repo, "status", "--porcelain", "--untracked-files=all");
+  const doctorLines = () => install(repo, ["--doctor"]).stdout.split("\n").filter((line) => line.includes("checkpoint-locks:"));
+
+  function checkpointUpdate(skill) {
+    return spawnSync(process.execPath, [CHECKPOINT_CLI, "update", skill, "--status=complete", "--phase=p", "--step=s", "--progress_summary=x", '--next_actions:json=["Ship it"]'], {
+      cwd: repo,
+      encoding: "utf8",
+      env: { ...GIT_ENV, OPCHAIN_ROOT: repo, OPCHAIN_CHECKPOINTS_DIR: join(repo, ".checkpoints") },
+    });
+  }
+
+  it("a freshly enrolled repository shows no lock file in git status after a checkpoint update", { timeout: 30_000 }, () => {
+    const enrolled = enroll();
+    expect(CHECKPOINT_IGNORE_PATTERNS).toEqual(["*.lock", ".*.tmp"]);
+    expect(readFileSync(ignorePath(), "utf8")).toBe("*.lock\n.*.tmp\n");
+    expect(enrolled.stdout).toContain(`checkpoint lock ignore rule created (${ignorePath()})`);
+
+    const update = checkpointUpdate("oc-docs-forge");
+    expect(update.status, update.stderr).toBe(0);
+    expect(existsSync(join(repo, ".checkpoints", "oc-docs-forge.checkpoint.json.lock")), "the lock stays on disk").toBe(true);
+    expect(status()).toContain(".checkpoints/oc-docs-forge.checkpoint.json");
+    expect(status()).not.toContain(".lock");
+    expect(readFileSync(ignorePath(), "utf8"), "the CLI writes the same two lines enrollment did").toBe("*.lock\n.*.tmp\n");
+  });
+
+  it("enrollment appends only what is missing, is idempotent, and leaves the root .gitignore alone", { timeout: 30_000 }, () => {
+    writeFileSync(join(repo, ".gitignore"), "node_modules/\n");
+    mkdirSync(join(repo, ".checkpoints"));
+    writeFileSync(ignorePath(), "# mine\n.mcp-sessions.json\n*.lock\nscratch/");
+
+    expect(enroll().stdout).toContain("checkpoint lock ignore rule updated");
+    const once = readFileSync(ignorePath(), "utf8");
+    expect(once).toBe("# mine\n.mcp-sessions.json\n*.lock\nscratch/\n.*.tmp\n");
+    expect(readFileSync(join(repo, ".gitignore"), "utf8")).toBe("node_modules/\n");
+
+    const again = install(repo, ["--enroll"]);
+    expect(again.status, again.stderr).toBe(0);
+    expect(again.stdout).toContain("checkpoint lock ignore rule unchanged");
+    expect(readFileSync(ignorePath(), "utf8")).toBe(once);
+  });
+
+  it("enrollment does not write through a symlinked .checkpoints/.gitignore", { timeout: 30_000 }, () => {
+    const outside = mkdtempSync(join(tmpdir(), "oc-git-drivers-outside-"));
+    try {
+      writeFileSync(join(outside, "ignore"), "theirs\n");
+      mkdirSync(join(repo, ".checkpoints"));
+      symlinkSync(join(outside, "ignore"), ignorePath());
+      const r = enroll();
+      expect(r.stdout).toContain("checkpoint lock ignore rule skipped-symlink");
+      expect(readFileSync(join(outside, "ignore"), "utf8")).toBe("theirs\n");
+    } finally {
+      rmSync(outside, { recursive: true, force: true });
+    }
+  });
+
+  it("--doctor warns when the rule is absent, without failing the preflight on it", { timeout: 30_000 }, () => {
+    expect(doctorLines()).toEqual([
+      expect.stringMatching(/^WARN  checkpoint-locks:ignored: \.checkpoints\/\*\.lock is not ignored .*run \/oc-enroll/),
+      "PASS  checkpoint-locks:tracked: no checkpoint lock file is tracked",
+    ]);
+
+    enroll();
+    expect(doctorLines()).toEqual([
+      `PASS  checkpoint-locks:ignored: ${CHECKPOINT_IGNORE_PATH}:1: *.lock`,
+      "PASS  checkpoint-locks:tracked: no checkpoint lock file is tracked",
+    ]);
+
+    // A warning is not a failed check: with everything else in place the preflight passes.
+    rmSync(ignorePath());
+    writeFileSync(join(repo, ".bugcheck.json"), JSON.stringify({ verification: { required_checks: ["direct"], commands: { direct: ["node", "check.mjs"] } } }));
+    const r = install(repo, ["--doctor"]);
+    expect(r.stdout).toContain("WARN  checkpoint-locks:ignored:");
+    expect(r.stdout).toMatch(/opchain doctor: PASS/);
+    expect(r.status, r.stdout).toBe(0);
+  });
+
+  it("--doctor accepts a rule in the root .gitignore and rejects one that only this clone has", { timeout: 30_000 }, () => {
+    enroll();
+    rmSync(ignorePath());
+
+    writeFileSync(join(repo, ".git", "info", "exclude"), ".checkpoints/*.lock\n");
+    expect(doctorLines()[0]).toMatch(/^WARN  checkpoint-locks:ignored: .*ignored only in this clone \(\.git\/info\/exclude:1\)/);
+
+    // A repository that was fixed by hand before the installer did it.
+    writeFileSync(join(repo, ".gitignore"), "node_modules/\n.checkpoints/*.lock\n");
+    expect(doctorLines()[0]).toBe("PASS  checkpoint-locks:ignored: .gitignore:2: .checkpoints/*.lock");
+
+    // A later negation un-ignores the lock again.
+    writeFileSync(join(repo, ".gitignore"), ".checkpoints/*.lock\n!.checkpoints/*.lock\n");
+    expect(doctorLines()[0]).toMatch(/^WARN  checkpoint-locks:ignored: \.checkpoints\/\*\.lock is not ignored/);
+  });
+
+  it("--doctor names tracked lock files, which an ignore rule does not untrack", { timeout: 30_000 }, () => {
+    enroll();
+    for (const skill of ["oc-docs-forge", "oc-repo-ops"]) writeFileSync(join(repo, ".checkpoints", `${skill}.checkpoint.json.lock`), "");
+    git(repo, "add", "-f", ".checkpoints");
+    expect(commit(repo, "checkpoints").status).toBe(0);
+
+    const lines = doctorLines();
+    expect(lines[0]).toBe(`PASS  checkpoint-locks:ignored: ${CHECKPOINT_IGNORE_PATH}:1: *.lock`);
+    expect(lines[1]).toContain("WARN  checkpoint-locks:tracked: 2 checkpoint lock files are tracked");
+    expect(lines[1]).toContain(".checkpoints/oc-docs-forge.checkpoint.json.lock, .checkpoints/oc-repo-ops.checkpoint.json.lock");
+    expect(lines[1]).toContain("git rm --cached -- '.checkpoints/*.lock'");
+
+    // The advice works as printed.
+    git(repo, "rm", "-q", "--cached", "--", ".checkpoints/*.lock");
+    expect(doctorLines()[1]).toBe("PASS  checkpoint-locks:tracked: no checkpoint lock file is tracked");
+  });
+});
+
 describe("--ci", () => {
   const TEMPLATE = readFileSync(join(ROOT, "plugins", "opchain", "templates", "opchain-evidence.yml"), "utf8");
 
@@ -755,6 +874,7 @@ describe("--ci", () => {
     }
     expect(JSON.parse(readFileSync(join(repo, VENDORED_RUNTIME_DIR, "package.json"), "utf8")).type).toBe("module");
     expect(r.stdout).toContain("commit .opchain/runtime/");
+    expect(readFileSync(join(repo, CHECKPOINT_IGNORE_PATH), "utf8"), "--ci implies enrollment's ignore rule").toBe("*.lock\n.*.tmp\n");
 
     // The vendored evidence gate must load from its new home.
     const vendored = spawnSync(process.execPath, [join(repo, VENDORED_RUNTIME_DIR, "scripts/lib/release-evidence.mjs"), "--repo", repo, "--print-candidate", "--json"], { cwd: repo, encoding: "utf8", env: GIT_ENV });

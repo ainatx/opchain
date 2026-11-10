@@ -37,8 +37,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/harness-loops.md",
@@ -87,8 +87,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/error-and-idempotency.md",
@@ -142,8 +142,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -201,8 +201,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -273,8 +273,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/migration-playbooks.md",
@@ -343,8 +343,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -388,8 +388,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/compliance-profile.md",
@@ -431,8 +431,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/cost-attribution.md",
@@ -493,8 +493,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/checkpoint-schema.md",
@@ -547,8 +547,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/data-contract-format.md",
@@ -588,8 +588,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/github-actions.md",
@@ -626,8 +626,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -661,8 +661,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -701,8 +701,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -734,8 +734,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -764,8 +764,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -806,8 +806,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/oauth-patterns.md",
@@ -857,8 +857,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/migration-playbooks.md",
@@ -898,8 +898,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -948,8 +948,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/incident-response.md",
@@ -1003,8 +1003,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -1038,8 +1038,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/drift-detection.md",
@@ -1087,8 +1087,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -1130,8 +1130,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/chunking-strategies.md",
@@ -1190,8 +1190,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -1237,8 +1237,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -1247,8 +1247,8 @@
         },
         {
           "path": "references/pr-readiness-gate.md",
-          "bytes": 1964,
-          "sha256": "7df4f679e9093186885f00a727e753f642e29a35ce1af0183aac9f055ef7842e"
+          "bytes": 2094,
+          "sha256": "1dcbc909a286db6eff311c2db41b59f7d6cbef47d358158094710a71b278d6a5"
         }
       ]
     },
@@ -1280,8 +1280,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -1317,8 +1317,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -1366,8 +1366,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -1404,8 +1404,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/hardening-manifest.md",
@@ -1444,8 +1444,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -1479,8 +1479,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/error-handling.md",
@@ -1537,8 +1537,8 @@
         },
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/local-metering.md",
@@ -1576,8 +1576,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",
@@ -1620,8 +1620,8 @@
       "references": [
         {
           "path": "references/checkpoint-protocol.md",
-          "bytes": 38284,
-          "sha256": "973c16493de165a634928754d68e25314f949ab729af4e64a858e41ecafb85ad"
+          "bytes": 38711,
+          "sha256": "80127b805a8a5199772898d9fb4ce520f0c8b6147909e65d99602936e9bb166b"
         },
         {
           "path": "references/orchestrator.md",

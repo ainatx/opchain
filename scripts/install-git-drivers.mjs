@@ -43,8 +43,10 @@
  *
  * Modes (all take `--repo <path>`, default cwd):
  *   (none)        npm prepare: install drivers + hooks; inert until enrolled
- *   --enroll      explicit enrollment: install, then create `.opchain/`
- *   --doctor      preflight only, installs nothing; PASS/FAIL per item
+ *   --enroll      explicit enrollment: install, then create `.opchain/` and
+ *                 ignore checkpoint lock and temp files in `.checkpoints/.gitignore`
+ *   --doctor      preflight only, installs nothing; PASS/FAIL per item, WARN for
+ *                 checkpoint lock files that are tracked or not ignored
  *   --ci [--force]
  *                 enroll, vendor the runtime into `.opchain/runtime/` and write
  *                 `.github/workflows/opchain-evidence.yml` from the packaged
@@ -98,6 +100,10 @@ export const BYPASS_TRAILER = "Opchain-Bypass";
 export const PUSH_BYPASS_ENV = "OPCHAIN_PUSH_BYPASS";
 export const CI_WORKFLOW_PATH = ".github/workflows/opchain-evidence.yml";
 export const VENDORED_RUNTIME_DIR = ".opchain/runtime";
+export const CHECKPOINT_IGNORE_PATH = ".checkpoints/.gitignore";
+// The same two patterns scripts/checkpoint.mjs writes (RUNTIME_IGNORE_PATTERNS).
+// This installer ships standalone in the plugin, so they are repeated here.
+export const CHECKPOINT_IGNORE_PATTERNS = Object.freeze(["*.lock", ".*.tmp"]);
 export const CLAUDE_MD_START = "<!-- opchain:managed-section v1 -->";
 export const CLAUDE_MD_END = "<!-- /opchain:managed-section -->";
 const AUTHORING_MARKER = "authoring-repository-v1";
@@ -737,6 +743,64 @@ function sameBytes(a, b) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Checkpoint lock files. Every mutating checkpoint verb takes an advisory lock
+// on `.checkpoints/<skill>.checkpoint.json.lock` and leaves the zero-byte file
+// behind (it has to outlive the command to keep excluding writers). The
+// checkpoints beside it are tracked, so the lock must be ignored or it is
+// committed with them. The checkpoint CLI adds the rule on its own the first time
+// it takes a lock; enrollment adds it up front, and --doctor reports a repository
+// where a lock was committed before either could.
+//
+// Why `.checkpoints/.gitignore` and not `.git/info/exclude`: an exclude file is
+// per clone, and `.checkpoints/` is tracked precisely so a fresh clone or an
+// ephemeral cloud worker can resume. A rule that does not travel with the clone
+// is missing in exactly those places. Why not the repo-root `.gitignore`: the
+// nested file is the one the local MCP store already maintains for the same
+// artifacts, and nothing of the repository's own has to be edited.
+// ---------------------------------------------------------------------------
+
+// Append-only and idempotent: the lines already in the file are never rewritten.
+export function installCheckpointIgnore(root) {
+  const file = join(root, CHECKPOINT_IGNORE_PATH);
+  let stat = null;
+  try { stat = lstatSync(file); } catch (error) { if (error.code !== "ENOENT") throw error; }
+  if (stat?.isSymbolicLink()) return { path: file, action: "skipped-symlink" };
+  if (stat && !stat.isFile()) return { path: file, action: "skipped-not-a-file" };
+  const existing = stat ? readFileSync(file, "utf8") : "";
+  const lines = new Set(existing.split(/\r?\n/));
+  const missing = CHECKPOINT_IGNORE_PATTERNS.filter((pattern) => !lines.has(pattern));
+  if (!missing.length) return { path: file, action: "unchanged" };
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, `${existing}${existing && !existing.endsWith("\n") ? "\n" : ""}${missing.join("\n")}\n`);
+  return { path: file, action: stat ? "updated" : "created" };
+}
+
+// Asks Git rather than reading one file, so a repository that ignores the lock
+// some other way (a rule in its root `.gitignore`, say) passes.
+function checkpointLockItems(root) {
+  const items = [];
+  const probe = ".checkpoints/opchain-doctor-probe.checkpoint.json.lock";
+  const fix = `run /oc-enroll, or any \`checkpoint update\`, to write ${CHECKPOINT_IGNORE_PATH}`;
+  // Prints `<source>:<line>:<pattern>\t<path>` for the rule that decides, and
+  // nothing when no rule matches. A negated pattern is a match that un-ignores.
+  const match = /^(.*?):(\d+):(.*)\t/.exec(git(["check-ignore", "--no-index", "-v", "--", probe], root) || "");
+  const [, source, line, pattern] = match || [];
+  if (!match || pattern.startsWith("!")) {
+    items.push({ id: "checkpoint-locks:ignored", status: "WARN", detail: `.checkpoints/*.lock is not ignored — every checkpoint write leaves an untracked lock file that \`git add -A\` would commit; ${fix}` });
+  } else if (isAbsolute(source) || !/(^|\/)\.gitignore$/.test(source)) {
+    items.push({ id: "checkpoint-locks:ignored", status: "WARN", detail: `.checkpoints/*.lock is ignored only in this clone (${source}:${line}); a fresh clone would not have the rule — ${fix}` });
+  } else {
+    items.push({ id: "checkpoint-locks:ignored", status: "PASS", detail: `${source}:${line}: ${pattern}` });
+  }
+  const tracked = (git(["ls-files", "-z", "--", ".checkpoints/*.lock"], root) || "").split("\0").filter(Boolean);
+  const shown = tracked.length > 5 ? `${tracked.slice(0, 5).join(", ")} and ${tracked.length - 5} more` : tracked.join(", ");
+  items.push(tracked.length
+    ? { id: "checkpoint-locks:tracked", status: "WARN", detail: `${tracked.length} checkpoint lock ${tracked.length === 1 ? "file is" : "files are"} tracked (${shown}) — an ignore rule leaves tracked files tracked; run \`git rm --cached -- '.checkpoints/*.lock'\` and commit` }
+    : { id: "checkpoint-locks:tracked", status: "PASS", detail: "no checkpoint lock file is tracked" });
+  return items;
+}
+
 export function doctor(info, { policyPath = ".bugcheck.json" } = {}) {
   const items = [];
   const enrolled = isEnrolled(info.root);
@@ -823,6 +887,7 @@ export function doctor(info, { policyPath = ".bugcheck.json" } = {}) {
     const item = nodeModulesItem(info.root, directory);
     if (item) items.push(item);
   }
+  items.push(...checkpointLockItems(info.root));
   return items;
 }
 
@@ -1049,6 +1114,14 @@ function main(argv = process.argv.slice(2)) {
           `opchain: push guard ${hooks[2].path}\n` +
           `opchain: verifier runtime ${runtime.root}\n`,
       );
+      // Like AGENTS.md below, a failure here must not undo an enrollment that
+      // already succeeded: the checkpoint CLI writes the same rule on first use.
+      try {
+        const ignore = installCheckpointIgnore(info.root);
+        process.stdout.write(`opchain: checkpoint lock ignore rule ${ignore.action} (${ignore.path})\n`);
+      } catch (error) {
+        process.stderr.write(`opchain: NOTICE ${CHECKPOINT_IGNORE_PATH} skipped: ${error.message}\n`);
+      }
       // opchain's own source checkout keeps its hand-written agent guidance.
       // A missing template must not undo an enrollment that already succeeded.
       if (!args.noAgentsMd && !isAuthoringRepository(info.root)) {

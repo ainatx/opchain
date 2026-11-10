@@ -1700,6 +1700,35 @@ function mutationSkill() {
   return rest[0] && SKILL_NAME.test(rest[0]) ? rest[0] : null;
 }
 
+/** What a mutating verb leaves in the checkpoint directory besides checkpoints:
+ *  the advisory lock file below, which has to outlive the command (see
+ *  runWithMutationLock), and the temp file of an atomic write that was killed
+ *  before its rename. */
+export const RUNTIME_IGNORE_PATTERNS = Object.freeze(["*.lock", ".*.tmp"]);
+
+/** Ignore those in `<dir>/.gitignore`, the file the local MCP store keeps for
+ *  the same artifacts (src/lib/mcp/local-checkpoint-store.js). Append-only: the
+ *  lines already there are never rewritten. The writer of the lock adds the rule
+ *  because no other step runs in every repository that takes one: enrollment
+ *  does not run in a skills-only install, and a repository enrolled before this
+ *  existed is not enrolled again. A consumer repository committed two lock files
+ *  that way. Returns true when it wrote. */
+export function ensureRuntimeIgnore(dir) {
+  const file = join(dir, ".gitignore");
+  let current = "";
+  try {
+    current = readFileSync(file, "utf8");
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  const lines = new Set(current.split(/\r?\n/));
+  const missing = RUNTIME_IGNORE_PATTERNS.filter((pattern) => !lines.has(pattern));
+  if (missing.length === 0) return false;
+  const prefix = current.length === 0 || current.endsWith("\n") ? current : `${current}\n`;
+  atomicWriteFile(file, `${prefix}${missing.join("\n")}\n`);
+  return true;
+}
+
 function runWithMutationLock() {
   const skill = mutationSkill();
   if (!skill) return run();
@@ -1714,6 +1743,19 @@ function runWithMutationLock() {
     return 1;
   }
   if (!existsSync(DIR)) mkdirSync(DIR, { recursive: true });
+  // The lock file stays on disk on purpose. Removing it after release lets a
+  // writer that was waiting on the old inode and a writer that creates a new file
+  // at the same path both hold "the" lock (macOS lockf needs -k for the same
+  // reason). Moving it under the Git directory would need the local MCP store,
+  // which locks this exact path, to move in the same release: an older store or
+  // an older bundled copy of this CLI would lock a different file and stop
+  // excluding this one. So it is ignored instead, before it first exists. A
+  // checkpoint write must not fail because that could not be done.
+  try {
+    ensureRuntimeIgnore(DIR);
+  } catch (error) {
+    console.error(`⚠ could not write ${join(DIR, ".gitignore")} (${error.message}); checkpoint lock files will show in git status`);
+  }
   const lockArgs = runtime.platform === "linux"
     ? ["-x", "-w", "10", lockPath]
     : ["-k", "-t", "10", lockPath];

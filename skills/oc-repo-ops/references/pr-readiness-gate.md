@@ -29,6 +29,8 @@ Block PR creation when any of these are true:
 - Catalog surfaces disagree with source.
 - Untracked files appear related to the PR but are neither staged nor ignored.
 - Ignore rules contradict project policy.
+- A checkpoint lock file is tracked (`git ls-files '.checkpoints/*.lock'` prints
+  one), or `.checkpoints/*.lock` is not ignored.
 - Touched docs contain broken internal links or references to deleted paths.
 - Checkpoints reference generated files that no longer exist.
 

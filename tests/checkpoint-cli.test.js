@@ -8,7 +8,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync
 import { tmpdir } from "node:os";
 import { join, basename } from "node:path";
 import { spawnSync } from "node:child_process";
-import { validate, applyUpdates, repoPathCandidate, projectName, frontmatterList, SCAFFOLD_NEXT_ACTION } from "../scripts/checkpoint.mjs";
+import { validate, applyUpdates, repoPathCandidate, projectName, frontmatterList, SCAFFOLD_NEXT_ACTION, ensureRuntimeIgnore, RUNTIME_IGNORE_PATTERNS } from "../scripts/checkpoint.mjs";
 import { evaluateReleaseEvidence, readHandoffStore } from "../scripts/lib/release-evidence.mjs";
 import { vendorRuntime } from "../scripts/install-git-drivers.mjs";
 
@@ -680,5 +680,57 @@ describe("prune-handoffs", () => {
     expect(r.out).toContain("pruned 2 handoff file(s)");
     expect(readdirSync(join(root, ".checkpoints", "handoffs", "pr-docs-v1"))).toEqual(["main.json"]); // the emptied claude/ directory goes too
     expect(existsSync(join(root, ".checkpoints", "oc-docs-forge.checkpoint.json"))).toBe(true); // never touches checkpoints
+  });
+});
+
+// Every mutating verb leaves `<skill>.checkpoint.json.lock` behind. The checkpoints
+// beside it are tracked, so the CLI ignores the lock itself: enrollment never runs
+// in a skills-only install. A consumer repository committed two of these files.
+describe("lock file hygiene", () => {
+  const UPDATE = ["--status=complete", "--phase=p", "--step=s", "--progress_summary=x", '--next_actions:json=["Ship it"]'];
+  const ignoreFile = (root) => join(root, ".checkpoints", ".gitignore");
+  const status = (root) => git(["status", "--porcelain", "--untracked-files=all"], root);
+
+  it("a mutating verb ignores its own lock file, in a repository nothing enrolled", () => {
+    const root = repo();
+    expect(run(root, "update", "oc-a", ...UPDATE).code).toBe(0);
+    expect(existsSync(join(root, ".checkpoints", "oc-a.checkpoint.json.lock")), "the lock stays on disk").toBe(true);
+    expect(readFileSync(ignoreFile(root), "utf8")).toBe("*.lock\n.*.tmp\n");
+    expect(status(root)).toContain(".checkpoints/oc-a.checkpoint.json");
+    expect(status(root)).not.toContain(".lock");
+
+    // The rule covers the temp file of a write that was killed before its rename.
+    writeFileSync(join(root, ".checkpoints", ".oc-a.checkpoint.json.123.dead.tmp"), "{");
+    expect(status(root)).not.toContain(".tmp");
+  });
+
+  it("appends only what is missing and never rewrites the lines already there", () => {
+    const root = repo();
+    // What the local MCP store leaves, plus a line of the owner's, no final newline.
+    writeFileSync(ignoreFile(root), ".mcp-sessions.json\n*.lock\n# mine\nscratch/");
+    expect(run(root, "update", "oc-a", ...UPDATE).code).toBe(0);
+    const once = readFileSync(ignoreFile(root), "utf8");
+    expect(once).toBe(".mcp-sessions.json\n*.lock\n# mine\nscratch/\n.*.tmp\n");
+    expect(run(root, "done", "oc-a").code).toBe(0);
+    expect(readFileSync(ignoreFile(root), "utf8")).toBe(once);
+  });
+
+  it("read-only verbs write nothing", () => {
+    const root = repo();
+    write(root, "oc-a.checkpoint.json", cp("oc-a"));
+    for (const verb of ["status", "next", "list", "validate", "doctor"]) run(root, verb);
+    expect(existsSync(ignoreFile(root))).toBe(false);
+  });
+
+  it("ensureRuntimeIgnore reports whether it wrote and keeps CRLF files intact", () => {
+    const dir = mkdtempSync(join(tmpdir(), "oc-ignore-"));
+    scratch.push(dir);
+    expect(RUNTIME_IGNORE_PATTERNS).toEqual(["*.lock", ".*.tmp"]);
+    expect(ensureRuntimeIgnore(dir)).toBe(true);
+    expect(ensureRuntimeIgnore(dir)).toBe(false);
+    writeFileSync(join(dir, ".gitignore"), "*.lock\r\nkeep\r\n");
+    expect(ensureRuntimeIgnore(dir)).toBe(true);
+    expect(readFileSync(join(dir, ".gitignore"), "utf8")).toBe("*.lock\r\nkeep\r\n.*.tmp\n");
+    expect(readdirSync(dir)).toEqual([".gitignore"]); // no temp file left behind
   });
 });
