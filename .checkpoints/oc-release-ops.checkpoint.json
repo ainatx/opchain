@@ -3,10 +3,10 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-07-10T17:52:21Z",
-  "updated_at": "2026-11-09T17:09:49.816Z",
+  "updated_at": "2026-11-10T00:01:44.538Z",
   "skill": "oc-release-ops",
   "phase": "bump-applied",
-  "step": "v2.1.1-bump-applied",
+  "step": "v2.1.1-tagged-on-main",
   "status": "in_progress",
   "progress_summary": "v2.1.1 patch cut on branch release/v2.1.1 from main b392ac37 (owner decision 2026-11-09: ship the managed AGENTS.md section, PR 680 by dag618, as a patch, a deliberate exception to additive-means-minor so 2.2 stays the planned release). Bump applied in one change: 36 skill stamps, plugin and marketplace manifests, server.json, release-seal.json (generation 1, serverJsonSha256 ef599265), skills/CHANGELOG.md [2.1.1], changelog open hero range and v2-1-1 rel-card, tab count 26 (recounted), styleguide badge, three README lead lines, e2e pins, .bugcheck.json oc-bug-check digests, route-spec and MCP catalog regenerated. check-release-surfaces passes. v2.1.0 shipped 2026-11-05 (main 79316438, signed tag, production live, baseline PR 678); its record is in skill_state.prior_release.",
   "progress_table": [
@@ -80,12 +80,11 @@
   },
   "blockers": [],
   "next_actions": [
-    "Open the v2.1.1 release PR from release/v2.1.1 after the commit gate and pre-PR evidence pass",
-    "After merge: npm run release-sequence -- --stage pre-tag --version 2.1.1, then the owner signs and pushes tag v2.1.1 (/oc-git-release 2.1.1)",
-    "Owner deploys staging then production from origin/main, then refreshes .github/monitoring/release-baseline.json",
-    "Flush the deferred Linear release ticket with /oc-release announce --retry-pm once the Linear connector is authorized; close it with the shipped marker.",
-    "2.1.x: remaining Track S audit items (architecture 33→36 count check, Coming Next card fixes, /privacy narrowing); gated /work nav pointer noted on #669.",
-    "2.2 cut: OPCHAIN_SHIP_WORK=1 on deploy + repo variable for the mirror; land #669 (ow- site half, head 063c6ab1); restore ow- changelog entries and the ow-tools ref flip; REL-02 acceptance runs + three real jobs + one care month before the tag."
+    "Merge the deploy-evidence PR (pre-deploy code audit and security posture for 2d22e630), then the owner deploys staging and production from origin/main",
+    "After production: refresh .github/monitoring/release-baseline.json (release.tag, tagObject, sourceSha by hand; drop runtime) in a baseline PR and run Canary on that branch",
+    "Flush the deferred Linear release ticket with /oc-release announce --retry-pm once the Linear connector is authorized",
+    "2.1.x: remaining Track S audit items",
+    "2.2 cut: OPCHAIN_SHIP_WORK=1 on deploy + repo variable for the mirror; land #669"
   ],
   "pm_refs": [
     {
@@ -113,7 +112,7 @@
     "current_release": {
       "semver": "2.1.1",
       "theme": "An opchain section in AGENTS.md",
-      "phase": "bump-applied",
+      "phase": "tagged",
       "started_at": "2026-11-09",
       "shipped_at": null,
       "decisions": [
@@ -269,18 +268,25 @@
       "verified_for_sha": "3bd88118 (content tree; evidence commit f1962d45 is checkpoint-only)"
     },
     "release_pr": {
-      "number": 671,
-      "url": "https://github.com/ainatx/opchain/pull/671",
-      "status": "draft, held until REL-02 passes",
-      "branch": "claude/release-2-1-0-1cd617",
-      "opened_at": "2026-11-02"
+      "number": 682,
+      "url": "https://github.com/ainatx/opchain/pull/682",
+      "merge_sha": "2d22e6300bf5ea1491f561d55707e2eee107e5ff",
+      "merged_at": "2026-11-09T23:57:34Z",
+      "method": "fast-forward of main to the tagged PR head under a temporary admin bypass (owner decision): the tag was pushed before the merge and main allows only squash or rebase, which would have left the tag unreachable"
     },
     "tag": {
-      "name": "v2.1.0",
-      "status": "pending — owner signs after REL-02 passes and the release PR merges, same sitting as staging + production"
+      "name": "v2.1.1",
+      "tag_object": "1052e0691b860c88601923d67f553f74782a18ec",
+      "peeled_commit": "2d22e6300bf5ea1491f561d55707e2eee107e5ff",
+      "signing_fingerprint": "66ED0CF12E9C51822AA1629BB4A90085A810B266",
+      "tagged_at": "2026-11-09T23:52:33Z",
+      "local_gate": "PASS",
+      "remote_gate": "PASS"
     },
     "publisher": {
-      "status": "pending"
+      "tag_run_id": "42723945950",
+      "registry_status": "workflow success",
+      "published_at": "2026-11-09T23:52:37Z"
     },
     "staging": {
       "status": "pending"
@@ -377,7 +383,7 @@
       "prod_health": "d4f926b"
     }
   },
-  "record_updated_at": "2026-11-09T17:09:49.816Z",
+  "record_updated_at": "2026-11-10T00:01:44.538Z",
   "pm_deferred_actions": [
     {
       "id": "deferred-2026-09-21T19:53:16Z-7f2f",

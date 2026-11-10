@@ -4,11 +4,11 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-10-27T05:36:29.928Z",
+  "updated_at": "2026-11-10T00:01:44.637Z",
   "phase": "pr-open",
-  "step": "jev-section-4-pr",
-  "status": "in_progress",
-  "progress_summary": "Jev plan §4 (J2 outcome judge) on claude/jev-route-log-spec-version off main e58b33a1: commit a33db319 through the gate (8/8 PASS), docs and readiness handoffs bound; opening the PR.",
+  "step": "last-merge-#682",
+  "status": "complete",
+  "progress_summary": "2026-11-09: merged #681 (Lighthouse fork-comment fix, squash dcb19d8a), #680 (managed AGENTS.md section by dag618, squash b392ac37) and #682 (release v2.1.1, landed as a fast-forward of main to 2d22e630 because the signed tag v2.1.1 had been pushed on the PR head before the merge). Tag v2.1.1 is signed, on origin and an ancestor of main; check-release-tag PASS from main.",
   "progress_table": [
     {
       "id": "v1.9-release-pr",
@@ -162,7 +162,7 @@
   },
   "blockers": [],
   "next_actions": [
-    "After CI is green on the §4 PR, hand the owner gh pr merge --squash --auto --match-head-commit <full head sha from gh>"
+    "Open and merge the deploy-evidence PR for v2.1.1, then hand off to the owner for staging and production"
   ],
   "skill_state": {
     "current_branch": "claude/competent-raman-864dee",
@@ -450,6 +450,27 @@
         "merge_method": "squash",
         "merge_sha": "da202a0f9e9e4ffa836ee1b52e547e98937f9313",
         "merged_at": "2026-09-18T21:09:12Z"
+      },
+      {
+        "number": 681,
+        "title": "ci(lighthouse): do not fail fork pull requests on the score comment",
+        "merge_method": "squash",
+        "merge_sha": "dcb19d8ae2626008404e8ba160f359a377860fc7",
+        "merged_at": "2026-11-09"
+      },
+      {
+        "number": 680,
+        "title": "feat(update): managed opchain section in AGENTS.md, written at enroll",
+        "merge_method": "squash",
+        "merge_sha": "b392ac377e1051339c1e582b88f0a8ada5937c34",
+        "merged_at": "2026-11-09"
+      },
+      {
+        "number": 682,
+        "title": "release: v2.1.1 — An opchain section in AGENTS.md",
+        "merge_method": "fast-forward (admin bypass, tag already on PR head)",
+        "merge_sha": "2d22e6300bf5ea1491f561d55707e2eee107e5ff",
+        "merged_at": "2026-11-09T23:57:34Z"
       }
     ],
     "closed_unmerged_prs": [
@@ -726,5 +747,5 @@
     },
     "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
   },
-  "record_updated_at": "2026-10-27T05:36:29.928Z"
+  "record_updated_at": "2026-11-10T00:01:44.637Z"
 }
