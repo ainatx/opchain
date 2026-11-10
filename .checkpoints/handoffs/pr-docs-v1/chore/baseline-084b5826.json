@@ -1,0 +1,23 @@
+{
+  "id": "oc-docs-forge-pr-docs-v1-ed5a06966ca0",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-10T03:17:09.887Z",
+  "verified_at": "2026-11-10T03:17:09.887Z",
+  "producer": {
+    "skill": "oc-docs-forge",
+    "run_id": "pr-docs-v1-2026-11-10T03:17:09.887Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:ed5a06966ca09f0f92a5fe966b75a02396cf90c31db7d2523aef3f7dd8bcadd8"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-docs-v1",
+    "scope": ".github/monitoring/release-baseline.json and the oc-release-ops checkpoint; no reader-facing doc describes the baseline's contents",
+    "evidence": [
+      ".github/monitoring/release-baseline.json"
+    ]
+  }
+}

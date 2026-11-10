@@ -2,20 +2,20 @@
   "schemaVersion": 1,
   "status": "approved-release-baseline",
   "release": {
-    "tag": "v2.1.0",
-    "tagObject": "3d0d61573b55b37024a80deccaf76d951b55a479",
-    "sourceSha": "79316438593e30b4ad7f4d64661b47d23436d153",
-    "sourceShortSha": "79316438"
+    "tag": "v2.1.1",
+    "tagObject": "1052e0691b860c88601923d67f553f74782a18ec",
+    "sourceSha": "2d22e6300bf5ea1491f561d55707e2eee107e5ff",
+    "sourceShortSha": "2d22e630"
   },
   "environments": {
     "staging": {
       "worker": "opchain-staging",
       "hostname": "staging.opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "97cef8a7-4aad-41a0-b67f-6ce7045b9825",
-      "versionId": "2e48fa0e-be04-41d6-a005-ff87cd0c8f55",
+      "deploymentId": "71de91d6-7ed0-4719-a3db-303abbdd0944",
+      "versionId": "a3e0cf23-e3a1-47be-bad5-1acb57b5efe3",
       "trafficPercentage": 100,
-      "scriptEtag": "c82134dcddb96764c08444863577002df4d5e64471647ad38fcc8ca9eeb0fda1",
+      "scriptEtag": "7ca44ab0349066b18d54b62306a7e062c443f1ef9bed903c3b31ac1f27d982ed",
       "handlers": [
         "fetch"
       ],
@@ -37,10 +37,10 @@
       "worker": "opchain-dev",
       "hostname": "opchain.dev",
       "domainEnvironment": "production",
-      "deploymentId": "e78b7cc2-c4fc-4f4e-a032-1fa01ebd483b",
-      "versionId": "451eb82d-6b5e-4484-95ea-82f03535072e",
+      "deploymentId": "88dab055-0bd9-4707-8899-a828b1885889",
+      "versionId": "2aa20c7e-d52d-4bb0-b1a1-e9f0ae445beb",
       "trafficPercentage": 100,
-      "scriptEtag": "c82134dcddb96764c08444863577002df4d5e64471647ad38fcc8ca9eeb0fda1",
+      "scriptEtag": "7ca44ab0349066b18d54b62306a7e062c443f1ef9bed903c3b31ac1f27d982ed",
       "handlers": [
         "fetch"
       ],
@@ -91,8 +91,13 @@
     ]
   },
   "pointInTimeEvidence": {
-    "healthVersion": "79316438",
+    "healthVersion": "084b5826",
     "continuousCustomDomainProbe": false,
-    "note": "Production and staging both serve origin/main 79316438, the signed v2.1.0 release (#671), as of 2026-11-06T05:19Z: production deployment e78b7cc2-c4fc-4f4e-a032-1fa01ebd483b / version 451eb82d-6b5e-4484-95ea-82f03535072e, staging deployment 97cef8a7-4aad-41a0-b67f-6ce7045b9825 / version 2e48fa0e-be04-41d6-a005-ff87cd0c8f55; recorded by scripts/deploy.mjs --refresh-baseline after both live smoke suites passed. Staging additionally carries FLAG_PLATFORM_SECURITY_FEEDBACK_TRIAGE and TYPESAFE_API_KEY (#676). Verify with node .github/scripts/cloudflare-monitor.mjs control-plane --environment all."
+    "note": "Production and staging both serve origin/main 084b5826, the signed v2.1.1 release (2d22e630, #682) plus the checkpoint-only evidence commit #683, as of 2026-11-10T01:30Z: production deployment 88dab055-0bd9-4707-8899-a828b1885889 / version 2aa20c7e-d52d-4bb0-b1a1-e9f0ae445beb, staging deployment 71de91d6-7ed0-4719-a3db-303abbdd0944 / version a3e0cf23-e3a1-47be-bad5-1acb57b5efe3; both recorded by scripts/deploy.mjs --refresh-baseline after the live smoke suites passed. No Cloudflare API token on the release laptop, so the control-plane check ran as a Canary workflow run on the baseline branch."
+  },
+  "runtime": {
+    "sha": "084b582638f47d624af6b898f5f17255ed6b6a91",
+    "shortSha": "084b5826",
+    "approval": "One post-tag commit from main after v2.1.1 (2d22e630): #683 chore(evidence), which adds the pre-deploy code audit and security posture verdicts for the release. It changes .checkpoints/ only, so the deployed source is the tagged release; it merged through a pull request with green CI. Deployed to staging and production by scripts/deploy.mjs on 2026-11-10 after the live hardening replay and smoke suite passed."
   }
 }
