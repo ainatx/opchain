@@ -69,6 +69,7 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  appendFileSync,
   chmodSync,
   copyFileSync,
   existsSync,
@@ -760,8 +761,11 @@ function sameBytes(a, b) {
 // artifacts, and nothing of the repository's own has to be edited.
 // ---------------------------------------------------------------------------
 
-// Append-only and idempotent: the lines already in the file are never rewritten.
-export function installCheckpointIgnore(root) {
+// Idempotent, and appended rather than rewritten: the local MCP store rewrites
+// this file when it creates a session, and a rewrite here that landed after
+// that would drop the store's own lines. An append cannot remove a line.
+// `beforeWrite` is the test seam for that interleaving.
+export function installCheckpointIgnore(root, { beforeWrite } = {}) {
   const file = join(root, CHECKPOINT_IGNORE_PATH);
   let stat = null;
   try { stat = lstatSync(file); } catch (error) { if (error.code !== "ENOENT") throw error; }
@@ -772,7 +776,8 @@ export function installCheckpointIgnore(root) {
   const missing = CHECKPOINT_IGNORE_PATTERNS.filter((pattern) => !lines.has(pattern));
   if (!missing.length) return { path: file, action: "unchanged" };
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, `${existing}${existing && !existing.endsWith("\n") ? "\n" : ""}${missing.join("\n")}\n`);
+  if (typeof beforeWrite === "function") beforeWrite(file);
+  appendFileSync(file, `${existing && !existing.endsWith("\n") ? "\n" : ""}${missing.join("\n")}\n`);
   return { path: file, action: stat ? "updated" : "created" };
 }
 

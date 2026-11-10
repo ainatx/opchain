@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +22,7 @@ import {
   PRE_PUSH_SNIPPET_MARKER,
   VENDORED_RUNTIME_DIR,
   VERIFICATION_MARKER,
+  installCheckpointIgnore,
   outgoingBypasses,
 } from "../scripts/install-git-drivers.mjs";
 import { AGENTS_SECTION_END, AGENTS_SECTION_OFF, AGENTS_SECTION_START } from "../scripts/update-opchain.mjs";
@@ -777,6 +778,19 @@ describe("checkpoint lock files", () => {
     expect(again.status, again.stderr).toBe(0);
     expect(again.stdout).toContain("checkpoint lock ignore rule unchanged");
     expect(readFileSync(ignorePath(), "utf8")).toBe(once);
+  });
+
+  // The local MCP store rewrites the same file (read, temp file, rename) when it
+  // creates a session. Enrollment appends, so a rename that lands between its
+  // read and its write keeps the store's lines.
+  it("enrollment never drops a line another writer adds between its read and its write", () => {
+    const mcpStoreWrites = (file) => {
+      writeFileSync(`${file}.tmp`, ".mcp-sessions.json\n*.lock\n.*.tmp\n.local/\n");
+      renameSync(`${file}.tmp`, file);
+    };
+    expect(installCheckpointIgnore(repo, { beforeWrite: mcpStoreWrites }).action).toBe("created");
+    const lines = readFileSync(ignorePath(), "utf8").split("\n").filter(Boolean);
+    expect(new Set(lines)).toEqual(new Set([".mcp-sessions.json", "*.lock", ".*.tmp", ".local/"]));
   });
 
   it("enrollment does not write through a symlinked .checkpoints/.gitignore", { timeout: 30_000 }, () => {

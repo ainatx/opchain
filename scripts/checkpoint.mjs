@@ -68,7 +68,7 @@
  *   frontmatter and moves independently as the docs/tooling evolve).
  */
 
-import { accessSync, constants, readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, rmdirSync, statSync, realpathSync, unlinkSync } from "node:fs";
+import { accessSync, appendFileSync, constants, lstatSync, readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, rmdirSync, statSync, realpathSync, unlinkSync } from "node:fs";
 import { dirname, join, basename, resolve, delimiter, relative, isAbsolute, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash, randomUUID } from "node:crypto";
@@ -1707,25 +1707,39 @@ function mutationSkill() {
 export const RUNTIME_IGNORE_PATTERNS = Object.freeze(["*.lock", ".*.tmp"]);
 
 /** Ignore those in `<dir>/.gitignore`, the file the local MCP store keeps for
- *  the same artifacts (src/lib/mcp/local-checkpoint-store.js). Append-only: the
- *  lines already there are never rewritten. The writer of the lock adds the rule
- *  because no other step runs in every repository that takes one: enrollment
- *  does not run in a skills-only install, and a repository enrolled before this
- *  existed is not enrolled again. A consumer repository committed two lock files
- *  that way. Returns true when it wrote. */
-export function ensureRuntimeIgnore(dir) {
+ *  the same artifacts (src/lib/mcp/local-checkpoint-store.js). The writer of the
+ *  lock adds the rule because no other step runs in every repository that takes
+ *  one: enrollment does not run in a skills-only install, and a repository
+ *  enrolled before this existed is not enrolled again. A consumer repository
+ *  committed two lock files that way.
+ *
+ *  The missing lines are appended; the file is never rewritten. The store
+ *  rewrites this file (read, temp file, rename) under its own lock when it
+ *  creates a session, and this CLI holds no lock in common with it. A rewrite
+ *  here that landed after the store's rename would drop the store's lines and
+ *  leave its private session registry unignored. An append cannot remove a line
+ *  whoever else writes, and the store's patterns include both of these, so no
+ *  interleaving loses a rule. Two writers that race on first use can leave a
+ *  duplicate line, which Git ignores.
+ *
+ *  A symlink is somebody's own arrangement and is not written through.
+ *  `beforeWrite` is the test seam for the interleaving. Returns true when it
+ *  wrote. */
+export function ensureRuntimeIgnore(dir, { beforeWrite } = {}) {
   const file = join(dir, ".gitignore");
-  let current = "";
+  let stat = null;
   try {
-    current = readFileSync(file, "utf8");
+    stat = lstatSync(file);
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }
+  if (stat && !stat.isFile()) return false;
+  const current = stat ? readFileSync(file, "utf8") : "";
   const lines = new Set(current.split(/\r?\n/));
   const missing = RUNTIME_IGNORE_PATTERNS.filter((pattern) => !lines.has(pattern));
   if (missing.length === 0) return false;
-  const prefix = current.length === 0 || current.endsWith("\n") ? current : `${current}\n`;
-  atomicWriteFile(file, `${prefix}${missing.join("\n")}\n`);
+  if (typeof beforeWrite === "function") beforeWrite(file);
+  appendFileSync(file, `${current.length === 0 || current.endsWith("\n") ? "" : "\n"}${missing.join("\n")}\n`);
   return true;
 }
 

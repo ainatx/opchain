@@ -4,7 +4,7 @@
 // how `status <skill>` ignoring its argument and `doctor` validating a rebuilt
 // path both shipped (2026-09-11 skill-chain audit, v1.9.1 Sprint 2).
 import { describe, it, expect, afterAll } from "vitest";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync, copyFileSync, readdirSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync, copyFileSync, readdirSync, renameSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, basename } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -720,6 +720,33 @@ describe("lock file hygiene", () => {
     write(root, "oc-a.checkpoint.json", cp("oc-a"));
     for (const verb of ["status", "next", "list", "validate", "doctor"]) run(root, verb);
     expect(existsSync(ignoreFile(root))).toBe(false);
+  });
+
+  // The local MCP store rewrites the same file (read, temp file, rename) when it
+  // creates a session. A rewrite here that lands after that rename would drop the
+  // store's own lines and leave its private session registry unignored.
+  it("never drops a line another writer adds between its read and its write", () => {
+    const root = repo();
+    const file = ignoreFile(root);
+    const mcpStoreWrites = () => {
+      writeFileSync(`${file}.tmp`, ".mcp-sessions.json\n*.lock\n.*.tmp\n.local/\n");
+      renameSync(`${file}.tmp`, file);
+    };
+    expect(ensureRuntimeIgnore(join(root, ".checkpoints"), { beforeWrite: mcpStoreWrites })).toBe(true);
+    const lines = readFileSync(file, "utf8").split("\n").filter(Boolean);
+    expect(new Set(lines)).toEqual(new Set([".mcp-sessions.json", "*.lock", ".*.tmp", ".local/"]));
+    writeFileSync(join(root, ".checkpoints", ".mcp-sessions.json"), "[]\n");
+    expect(status(root)).not.toContain(".mcp-sessions.json");
+  });
+
+  it("does not write through a symlinked .gitignore", () => {
+    const root = repo();
+    const outside = mkdtempSync(join(tmpdir(), "oc-ignore-outside-"));
+    scratch.push(outside);
+    writeFileSync(join(outside, "ignore"), "theirs\n");
+    symlinkSync(join(outside, "ignore"), ignoreFile(root));
+    expect(run(root, "update", "oc-a", ...UPDATE).code).toBe(0);
+    expect(readFileSync(join(outside, "ignore"), "utf8")).toBe("theirs\n");
   });
 
   it("ensureRuntimeIgnore reports whether it wrote and keeps CRLF files intact", () => {
