@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-0a30863e7a81",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-11T03:38:32.324Z",
+  "verified_at": "2026-11-11T03:38:32.324Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-11-11T03:38:32.324Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:0a30863e7a81d0d2a24b591f2210a000e6cb04e9673937f7eb17397cf0f5ce2a"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "package.json package-lock.json site/package.json site/package-lock.json scripts/runtime/prompt-engine.mjs skills/{oc-checkpoint-protocol,oc-evolve,oc-hindsight,oc-telemetry-ops,oc-update}/scripts/runtime/** plugins/opchain/skills/** tests/install-git-drivers.test.js site/tests/e2e/routes.spec.ts",
+    "evidence": [
+      "Generated files current: sync-bundles:check and sync-plugin-skills:check pass on the committed tree (gate receipt for candidate 5d901523a8cf). Routes e2e 32/32 and full suite 139 passed locally (1 changelog test needs gen-roadmap, CI runs it). No orphaned artifacts; gitignore policy holds."
+    ]
+  }
+}

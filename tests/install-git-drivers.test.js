@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -738,7 +738,7 @@ describe("--doctor", () => {
 // ignore rule this repository has.
 describe("checkpoint lock files", () => {
   const CHECKPOINT_CLI = join(ROOT, "scripts", "checkpoint.mjs");
-  const ignorePath = () => join(repo, CHECKPOINT_IGNORE_PATH);
+  const ignorePath = () => join(realpathSync(repo), CHECKPOINT_IGNORE_PATH); // the installer prints the resolved path; macOS tmpdir is a symlink
   const status = () => git(repo, "status", "--porcelain", "--untracked-files=all");
   const doctorLines = () => install(repo, ["--doctor"]).stdout.split("\n").filter((line) => line.includes("checkpoint-locks:"));
 

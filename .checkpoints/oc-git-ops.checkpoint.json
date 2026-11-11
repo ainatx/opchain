@@ -4,10 +4,10 @@
   "project": "opchain.dev",
   "project_dir": "/Users/aidanelsesser/repos/opchain",
   "created_at": "2026-05-01T16:58:00Z",
-  "updated_at": "2026-11-10T00:01:44.637Z",
+  "updated_at": "2026-11-11T03:18:23.839Z",
   "phase": "pr-open",
-  "step": "last-merge-#682",
-  "status": "complete",
+  "step": "repo-cleanup-2026-11-10",
+  "status": "in_progress",
   "progress_summary": "2026-11-09: merged #681 (Lighthouse fork-comment fix, squash dcb19d8a), #680 (managed AGENTS.md section by dag618, squash b392ac37) and #682 (release v2.1.1, landed as a fast-forward of main to 2d22e630 because the signed tag v2.1.1 had been pushed on the PR head before the merge). Tag v2.1.1 is signed, on origin and an ancestor of main; check-release-tag PASS from main.",
   "progress_table": [
     {
@@ -162,7 +162,9 @@
   },
   "blockers": [],
   "next_actions": [
-    "Open and merge the deploy-evidence PR for v2.1.1, then hand off to the owner for staging and production"
+    "Owner merges #686 (human DCO squash), then fast-forward the main checkout",
+    "#651 astro group: land with the Astro migration, not alone",
+    "Local worktree sweep: 49 worktrees, 13 with dirty files; main checkout 13 behind origin/main with 85 dirty paths"
   ],
   "skill_state": {
     "current_branch": "claude/competent-raman-864dee",
@@ -745,7 +747,51 @@
       "completed_at": "2026-09-11T07:21:36Z",
       "rerun_used": "#473 Worker job, once, after a standing-down comment"
     },
-    "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473."
+    "dependabot_note": "Comment commands (`@dependabot rebase`, `@dependabot ignore ...`) are not processed on the Dependabot PRs opened on 2026-08-31 during the repository transfer (#471, and by extension #472); Dependabot's scheduled runs still manage them (auto-rebase on conflict works). Use GitHub update-branch for those PRs, as with #473.",
+    "repo_cleanup_2026_11_10": {
+      "closed_prs": [
+        {
+          "number": 652,
+          "reason": "superseded by #668 and #670; branch kept for the owed follow-up"
+        }
+      ],
+      "deleted_remote_branches": 59,
+      "deleted_groups": {
+        "bot_checkpoint_stamp": 34,
+        "merged_pr_branches": 4,
+        "closed_pr_branches": 16,
+        "no_pr_leftovers": 5
+      },
+      "kept_branches": [
+        "claude/ow-site-for-2-2",
+        "claude/2-1-staging-preview-bf05c2",
+        "codex/ow-handoff-completion",
+        "claude/demo-scenario-realism-99b27d",
+        "fix/2.0.3-session-clock"
+      ],
+      "dependabot": {
+        "consolidated_into": 686,
+        "closed": [
+          598,
+          627,
+          628,
+          629,
+          630,
+          631,
+          640,
+          650,
+          657
+        ],
+        "left_open": [
+          651
+        ],
+        "root_cause": "root bumps shift the prompt-engine bundle; sync-bundles:check fails until npm run sync-bundles runs on the branch"
+      },
+      "open_prs_kept": [
+        669,
+        651
+      ]
+    }
   },
-  "record_updated_at": "2026-11-10T00:01:44.637Z"
+  "record_updated_at": "2026-11-11T03:18:23.839Z"
 }
