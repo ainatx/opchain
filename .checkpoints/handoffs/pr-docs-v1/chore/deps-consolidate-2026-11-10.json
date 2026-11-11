@@ -1,23 +1,23 @@
 {
-  "id": "oc-docs-forge-pr-docs-v1-eab352e40393",
+  "id": "oc-docs-forge-pr-docs-v1-0a30863e7a81",
   "contract_version": "1.0",
   "type": "verification.verdict",
-  "created_at": "2026-11-11T03:15:53.500Z",
-  "verified_at": "2026-11-11T03:15:53.500Z",
+  "created_at": "2026-11-11T03:38:32.090Z",
+  "verified_at": "2026-11-11T03:38:32.090Z",
   "producer": {
     "skill": "oc-docs-forge",
-    "run_id": "pr-docs-v1-2026-11-11T03:15:53.500Z"
+    "run_id": "pr-docs-v1-2026-11-11T03:38:32.090Z"
   },
   "candidate": {
     "kind": "git_tree_projection",
-    "id": "sha256:eab352e403934bb8ca81e3a6a2e0f0d7869877a19f90b168cc8ba4473167060d"
+    "id": "sha256:0a30863e7a81d0d2a24b591f2210a000e6cb04e9673937f7eb17397cf0f5ce2a"
   },
   "payload": {
     "verdict": "PASS",
     "policy": "pr-docs-v1",
-    "scope": "package.json package-lock.json site/package.json site/package-lock.json scripts/runtime/prompt-engine.mjs skills/{oc-checkpoint-protocol,oc-evolve,oc-hindsight,oc-telemetry-ops,oc-update}/scripts/runtime/** plugins/opchain/skills/** tests/install-git-drivers.test.js",
+    "scope": "package.json package-lock.json site/package.json site/package-lock.json scripts/runtime/prompt-engine.mjs skills/{oc-checkpoint-protocol,oc-evolve,oc-hindsight,oc-telemetry-ops,oc-update}/scripts/runtime/** plugins/opchain/skills/** tests/install-git-drivers.test.js site/tests/e2e/routes.spec.ts",
     "evidence": [
-      "Dependency manifests, lockfiles, generated bundle output (sync-bundles + sync-plugin-skills) and one test fix only. No README, CHANGELOG, docs/, runbook or SKILL.md changed; none of them documents dependency versions, so there is no reader-facing doc to update."
+      "Dependency manifests, lockfiles, generated bundle output (sync-bundles + sync-plugin-skills), one vitest fix and one e2e rule exemption with an in-file reason. No README, CHANGELOG, docs/, runbook or SKILL.md changed; none documents dependency versions or axe rule coverage."
     ]
   }
 }
