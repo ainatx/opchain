@@ -1,0 +1,23 @@
+{
+  "id": "oc-repo-ops-pr-readiness-v1-eab352e40393",
+  "contract_version": "1.0",
+  "type": "verification.verdict",
+  "created_at": "2026-11-11T03:15:53.746Z",
+  "verified_at": "2026-11-11T03:15:53.746Z",
+  "producer": {
+    "skill": "oc-repo-ops",
+    "run_id": "pr-readiness-v1-2026-11-11T03:15:53.746Z"
+  },
+  "candidate": {
+    "kind": "git_tree_projection",
+    "id": "sha256:eab352e403934bb8ca81e3a6a2e0f0d7869877a19f90b168cc8ba4473167060d"
+  },
+  "payload": {
+    "verdict": "PASS",
+    "policy": "pr-readiness-v1",
+    "scope": "package.json package-lock.json site/package.json site/package-lock.json scripts/runtime/prompt-engine.mjs skills/{oc-checkpoint-protocol,oc-evolve,oc-hindsight,oc-telemetry-ops,oc-update}/scripts/runtime/** plugins/opchain/skills/** tests/install-git-drivers.test.js",
+    "evidence": [
+      "Generated files current: sync-bundles:check and sync-plugin-skills:check pass on the committed tree (gate receipt for candidate ecc83e05). No orphaned artifacts; node_modules and build output stay gitignored; .checkpoints tracked per protocol."
+    ]
+  }
+}
