@@ -23,7 +23,9 @@ describe("site release chip", () => {
 
   it("keeps the Skill Library release callout on the current release", () => {
     expect(skillsPage).toContain('href="/changelog#v2-1"');
-    expect(skillsPage).toContain('aria-label="See what shipped in opchain v2.1"');
+    // No aria-label: the callout's own copy is its accessible name (WCAG 2.5.3
+    // Label in Name, enforced by axe-core 4.14 in site/tests/e2e/routes.spec.ts).
+    expect(skillsPage).not.toContain('aria-label="See what shipped');
     expect(skillsPage).toContain('<span class="release-callout-tag">v2.1 · SHIPPED</span>');
     expect(skillsPage).toContain("Enforcement at chokepoints");
     expect(skillsPage).toContain("<code>/oc-merge</code>");
