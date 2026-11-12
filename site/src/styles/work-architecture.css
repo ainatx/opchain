@@ -1,0 +1,523 @@
+/* opchain.work architecture diagram — the Architecture v2 styles, carried over
+   from site/src/pages/architecture.astro (its <style is:global> block) for the
+   /work page, which does not include that page. Extracted rule for rule by
+   selector (header, bands, band detail, canvas, rails, legend, footer, the
+   light-theme variable sheet and the SVG attribute remaps), then the handful
+   of additions at the bottom (.arch-title replaces h1, the two rails, the
+   variant-b side column, the mobile/desktop swap). Keep the two in step: a
+   change to a shared selector on /architecture belongs here too. */
+.arch-v2 {
+    /* Forge surfaces */
+    --obsidian:   #12191f;
+    --forge:      #162028;
+    --slag:       #445461;
+    --sand:       #a5bcd1;
+    --linen:      #d4e2ef;
+    --parchment:  #e7eef5;  --bg: var(--obsidian);  --text: var(--linen);  --subtle: #7d91a4;
+
+    /* Brand accent */
+    --ember:      #2be179;
+    --char:       #13bd62;
+    --ember-dim:  color-mix(in srgb, var(--ember) 10%, transparent);
+
+    /* Semantic */
+    --success:    #02fdff;
+    --warning:    #ebfe00;
+    --error:      #d58f8f;
+    --advisor:    #00bdfd;
+    --auditor:    #fb5998;
+    --ai:         #a384fe;   /* v1.5 AI-native phase accent */
+    --inst:       #1abea5;   /* v1.6 instrumentation accent (lime) */
+    --sig:        #d87fd1;   /* v1.7 "Seams & Signals" accent (magenta) */
+    --docs:       #00bdfd;   /* v1.8 docs/repo gate accent */
+    --docs-dim:   color-mix(in srgb, var(--advisor) 8%, transparent);
+    --docs-mid:   color-mix(in srgb, var(--advisor) 16%, transparent);
+    --inst-dim:   color-mix(in srgb, var(--inst) 8%, transparent);
+    --inst-mid:   color-mix(in srgb, var(--inst) 16%, transparent);
+    --assure:     #ebfe00;   /* v1.9 assurance-rail accent (gold; NOT the #ebfe00 archetype amber) */
+    --assure-dim: color-mix(in srgb, var(--warning) 8%, transparent);
+    --assure-mid: color-mix(in srgb, var(--warning) 16%, transparent);
+    /* v2.0 learning-rail chrome. The rail renders in the 2.0 "Slate & Emerald"
+       token set (design-previews/color-2.0-tooling/tokens-2.0.css, set 34) while
+       the rest of this page stays Forge — so the v2.0 surface previews the 2.0
+       palette. Chrome is that set's --secondary #8cb9fc, which is precisely the
+       colour 2.0 gives "coming next" on /changelog, and v2.0 is the next
+       release. 8.83:1 on the slate ground, 8.87:1 on this page's obsidian.
+       Panels inside the rail carry the 2.0 ROLE colours (--tri-agent #ebfe00,
+       --specialist #02fdff, --orchestrator #a384fe) and the 2.0 --accent
+       #2be179 for the checkpoint substrate. */
+    --tert:       #d79fe9;   /* 2.0 --tertiary (planned) */
+    --learn:      #8cb9fc;
+    --learn-dim:  color-mix(in srgb, var(--learn) 10%, transparent);
+    --learn-mid:  color-mix(in srgb, var(--learn) 18%, transparent);
+    --v20-bg:     #12191f;   /* 2.0 --bg    — the rail's own slate ground */
+    --v20-text:   #d4e2ef;   /* 2.0 --text  — frost */
+    --v20-muted:  #a5bcd1;   /* 2.0 --muted */
+
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    /* Stroke/glow variant of each rail. On dark it IS the rail; light gives it
+       its own value (see the light block below and scripts/arch-light-chroma.mjs). */
+    --ember-line: var(--ember);
+    --success-line: var(--success);
+    --warning-line: var(--warning);
+    --warning-wash: var(--warning);
+    --error-line: var(--error);
+    --advisor-line: var(--advisor);
+    --auditor-line: var(--auditor);
+    --ai-line: var(--ai);
+    --inst-line: var(--inst);
+    --sig-line: var(--sig);
+    --learn-line: var(--learn);
+    --tert-line: var(--tert);
+    --shade:      var(--slate);   /* deep wash behind panels/tooltips; light overrides it */
+    --arch-page: var(--obsidian);
+    background: var(--arch-page);
+    color: var(--linen);
+    padding: 2rem;
+  }
+.arch-v2 *,
+.arch-v2 *::before,
+.arch-v2 *::after { margin: 0; padding: 0; box-sizing: border-box; }
+.arch-v2 .arch-v2-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+.arch-v2 .container { max-width: 100%; margin: 0 auto; }
+.arch-v2 .header { margin-bottom: 1.5rem; }
+.arch-v2 .header-eyebrow {
+    display: flex; align-items: center; gap: .5em;
+    font-size: .625rem; font-weight: 500; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--ember);
+    margin-bottom: .4em;
+  }
+.arch-v2 .header-eyebrow::before {
+    content: '—'; font-size: 1.125rem; line-height: 1; color: var(--ember);
+  }
+.arch-v2 .arch-title {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: 1.5rem; font-weight: 600;
+    letter-spacing: -0.015em; color: var(--linen);
+  }
+.arch-v2 .subtitle { color: var(--sand); font-size: .75rem; margin-top: .25em; }
+.arch-v2 .diagram-container {
+    background: var(--forge);
+    border-radius: 8px;
+    border: .5px solid var(--slag);
+    padding: 20px; overflow-x: auto;
+    position: relative;
+  }
+.arch-v2 .bands-wrap {
+    border: 1px dashed color-mix(in srgb, var(--ember) 30%, transparent);
+    border-radius: 6px;
+    padding: .5rem .5rem 1rem 0; min-width: 795px;
+    position: relative;
+    background: color-mix(in srgb, var(--ember) 2%, transparent);
+  }
+.arch-v2 .band {
+    display: flex; align-items: stretch;
+    transition: opacity 1.5s ease, filter 1.5s ease;
+    position: relative; z-index: 1;
+  }
+.arch-v2 .band.dimmed { opacity: .06; filter: grayscale(1) brightness(.3); }
+.arch-v2 .band-label {
+    width: 18px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative;
+    margin-left: 7px;
+    /* LHCI band-label contrast (ADEV-345 → ADEV-347 follow-up): the
+       band's SVG glow filters (filter="url(#glow-mint)" etc.) paint
+       outside the SVG's layout box and bleed across this strip. Solid
+       --bg + z-index lift the strip ABOVE the sibling .band-content
+       in stacking order so the audit samples the page bg under the
+       text instead of the leaked glow. Both .band-label and
+       .band-content are position:relative with z-index:auto, which
+       means paint order is document order — .band-content comes
+       second and overpainted this strip even with the solid bg added
+       in ADEV-345. z-index:1 wins back the z-order. The 18px strip
+       is visually continuous with the page on both themes — same
+       --bg — so nothing visible changes. */
+    background: var(--bg);
+    z-index: 1;
+  }
+.arch-v2 .band:focus-visible { outline: 1.5px solid var(--ember); outline-offset: 2px; border-radius: 2px; }
+.arch-v2 .band-label-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: .575rem; font-weight: 700;
+    /* LHCI band-label contrast (ADEV-341): prior attempts walked the
+       color down --slag → --subtle → --muted (=--sand, ~9.4:1) but
+       Lighthouse kept flagging band-ship and band-monitor — both have
+       glow-filtered SVG content that lifts the effective bg luminance
+       under the 9.2px-tall vertical text. --text (linen on dark,
+       obsidian on light) gives ~14.5:1 in both themes — unambiguously
+       above any threshold no matter what bg the audit samples. Active
+       state stays --text; the dim/active hierarchy is now carried by
+       the .band-label-bar reveal (opacity 0 → 1 on active). */
+    letter-spacing: .15em; color: var(--text);
+    transition: color .2s; white-space: nowrap;
+  }
+.arch-v2 .band-label-bar {
+    position: absolute; left: 0; top: 6px; bottom: 6px;
+    width: 2px; border-radius: 1px;
+    opacity: 0; transition: opacity .2s;
+  }
+.arch-v2 .band.active .band-label-bar { opacity: 1; }
+.arch-v2 .band-content {
+    flex: 1; min-width: 0; position: relative;
+    /* Establish an inline-size container so .band-detail text can scale
+       with the same width that drives the SVG skill-box text (which is
+       sized in viewBox units of a 760-wide canvas). 1cqi ≈ the on-screen
+       size of an SVG font-size="7.5" glyph. */
+    container-type: inline-size;
+  }
+.arch-v2 .band-content svg { width: 100%; display: block; }
+.arch-v2 .band-detail {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height .5s cubic-bezier(.4,0,.2,1),
+                opacity .4s ease .08s, padding .5s ease;
+    padding: 0 12px;
+  }
+.arch-v2 .band.active .band-detail {
+    max-height: 480px; opacity: 1; padding: 8px 12px 12px;
+  }
+.arch-v2 .bd-inner {
+    border-radius: 6px; padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+.arch-v2 .bd-left { flex: 1; min-width: 0; display: flex; flex-direction: row; gap: 14px; align-items: flex-start; }
+.arch-v2 .bd-text { flex: 1; min-width: 0; }
+.arch-v2 .bd-badge {
+    font-size: clamp(.5rem, .85cqi, .7rem); font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase; margin-bottom: 3px;
+  }
+.arch-v2 .bd-title {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-size: clamp(.934rem, 1.668cqi, 1.208rem);
+    font-weight: 600; color: var(--linen); margin-bottom: 5px;
+  }
+.arch-v2 .bd-desc {
+    font-size: clamp(.719rem, 1.15cqi, .978rem);
+    color: var(--sand); line-height: 1.65;
+  }
+.arch-v2 .bd-meta {
+    flex-shrink: 0; width: fit-content; max-width: 40%; border-radius: 5px; padding: 8px 10px;
+    background: color-mix(in srgb, var(--shade) 18%, transparent); border: .5px solid color-mix(in srgb, var(--sand) 12%, transparent);
+    display: flex; flex-direction: column; gap: 5px;
+  }
+.arch-v2 .bd-meta-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.arch-v2 .bd-meta-label {
+    font-size: clamp(.529rem, .85cqi, .72rem);
+    font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--sand); flex-shrink: 0; width: 60px;
+  }
+.arch-v2 .bd-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.arch-v2 .bd-tag {
+    font-size: clamp(.661rem, 1cqi, .85rem);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+.arch-v2 .bd-cp {
+    font-size: clamp(.661rem, 1cqi, .85rem);
+    color: var(--ember); display: flex; align-items: center; gap: 4px;
+  }
+.arch-v2 .bd-cp-badge {
+    font-size: clamp(.578rem, .85cqi, .72rem);
+    font-weight: 700; padding: 1px 4px; border-radius: 3px;
+    background: var(--ember-dim); border: .5px solid color-mix(in srgb, var(--ember) 50%, transparent);
+  }
+.arch-v2 .bd-cross { display: flex; gap: 6px; flex-wrap: wrap; }
+.arch-v2 .bd-cross-tag {
+    font-size: clamp(.578rem, .85cqi, .72rem);
+    padding: 1px 5px; border-radius: 3px; opacity: .8;
+  }
+.arch-v2 .band-arrow {
+    display: flex; align-items: center; justify-content: center;
+    padding: 2px 0; height: 36px; gap: 10px;
+    transition: opacity 1.5s ease, filter 1.5s ease;
+  }
+.arch-v2 .band-arrow.dimmed { opacity: .04; filter: grayscale(1) brightness(.2); }
+.arch-v2 .lines-canvas {
+    position: absolute; inset: 0;
+    /* Behind the bands, not over them (spec 10b: long-haul connections render
+       BEHIND boxes). At z-index 2 the plan-to-build trunk painted across the
+       pack-fabric card. The card's background is translucent, so the line still
+       reads through it as passing underneath. Bands take z-index 1 below. */
+    pointer-events: none; z-index: 0;
+    transition: opacity .85s ease .65s;
+  }
+.arch-v2 .lines-canvas.dimmed { opacity: .04; transition: opacity 1.5s ease 0s; }
+.arch-v2 .legend {
+    display: flex; flex-wrap: wrap; gap: 10px 28px;
+    padding: 18px 16px 10px; justify-content: center;
+    position: relative;
+  }
+.arch-v2 .legend-section-label {
+    width: 100%;
+    text-align: center;
+    font-size: .5rem;
+    letter-spacing: .12em;
+    /* LHCI: --slag fails AA Normal. --subtle is the calibrated
+       dimmed-text token. Same fix as .band-label-text above. */
+    color: var(--subtle);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+.arch-v2 .legend-divider {
+    width: 100%;
+    height: .5px;
+    background: var(--slag);
+    opacity: .3;
+    margin: 6px 0;
+  }
+.arch-v2 .legend-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .625rem; color: var(--sand); cursor: pointer;
+    transition: opacity .75s ease; position: relative;
+  }
+.arch-v2 .legend-item:focus-visible { outline: 1.5px solid var(--ember); outline-offset: 2px; border-radius: 2px; }
+.arch-v2 .legend-item.dimmed { opacity: .07; }
+.arch-v2 .li-swatch { width: 22px; height: 12px; border-radius: 3px; }
+.arch-v2 .li-swatch-spine {
+    /* LHCI: var(--success) (teal-700) on the alpha-blended 18% mix bg gives
+       ~4.48:1 — fails AA Normal at .5rem. var(--success) is the calibrated
+       --specialist token (B-10: was var(--success), 4.48△ → 6.74✓). */
+    background: color-mix(in srgb, var(--success) 18%, transparent);
+    border: .5px solid var(--success);
+    color: var(--success);
+    font-size: .5rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    height: 13px;
+    width: 32px;
+    letter-spacing: .02em;
+  }
+.arch-v2 .li-line { width: 28px; height: 0; border-top: 2px solid; }
+.arch-v2 .legend-card {
+    position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%); width: 16.25rem;
+    padding: 12px 14px; border-radius: 6px;
+    background: color-mix(in srgb, var(--shade) 96%, transparent);
+    border: .5px solid var(--slag);
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    z-index: 10; pointer-events: none; opacity: 0; visibility: hidden;
+    transition: opacity .3s ease, visibility .3s;
+    font-size: .625rem; color: var(--sand); line-height: 1.6;
+  }
+.arch-v2 .legend-card.visible { opacity: 1; visibility: visible; }
+.arch-v2 .legend-card-title { font-family: 'Outfit', system-ui, sans-serif; font-size: .6875rem; font-weight: 600; margin-bottom: 4px; color: var(--linen); }
+.arch-v2 .legend-card-examples { margin-top: 5px; font-size: .5rem; color: var(--sand); }
+.arch-v2 .footer { text-align: center; margin-top: 1.25rem; color: var(--subtle); font-size: .7rem; }
+.arch-v2 .spine-chip { transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+    .arch-v2 *,
+    .arch-v2 *::before,
+    .arch-v2 *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      animation-delay: 0s !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0s !important;
+    }
+  }
+.arch-v2 .irail {
+    margin: 1.25rem 0 0;
+    border: 1px solid var(--inst);
+    border-radius: 8px;
+    background: var(--inst-dim);
+    padding: 14px 16px 12px;
+  }
+.arch-v2 .irail-head { margin-bottom: 12px; }
+.arch-v2 .irail-eyebrow {
+    display: block; font-size: .5625rem; font-weight: 700; color: var(--inst);
+    letter-spacing: .14em; text-transform: uppercase; margin-bottom: 4px;
+  }
+.arch-v2 .irail-title {
+    font-family: 'Outfit', system-ui, sans-serif; font-size: .9rem;
+    font-weight: 600; color: var(--linen);
+  }
+.arch-v2 .irail-anchors { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.arch-v2 .irail-anchor {
+    flex: 1 1 240px; display: flex; flex-direction: column; gap: 2px;
+    border: 1px solid var(--inst); border-radius: 6px;
+    background: var(--obsidian); padding: 9px 11px; text-decoration: none;
+    transition: background .15s ease;
+  }
+.arch-v2 .irail-anchor:hover,
+.arch-v2 .irail-anchor:focus-visible { background: var(--inst-mid); outline: 1.5px solid var(--ember); outline-offset: 2px; }
+.arch-v2 .ia-name { font-family: 'Outfit', system-ui, sans-serif; font-size: .8rem; font-weight: 600; color: var(--linen); }
+.arch-v2 .ia-meta { font-size: .56rem; color: var(--sand); }
+.arch-v2 .ia-do { font-size: .56rem; color: var(--inst); }
+.arch-v2 .ia-badges { display: flex; gap: 5px; align-items: center; margin-top: 4px; }
+.arch-v2 .ia-cp {
+    font-size: .5rem; font-weight: 700; color: var(--ember);
+    border: .5px solid color-mix(in srgb, var(--ember) 60%, transparent); background: var(--obsidian);
+    border-radius: 3px; padding: 1px 4px;
+  }
+.arch-v2 .ia-new {
+    font-size: .5rem; font-weight: 700; color: var(--inst);
+    border: .5px solid var(--inst); background: var(--inst-mid);
+    border-radius: 3px; padding: 1px 4px;
+  }
+.arch-v2 .irail-foot { font-size: .56rem; color: var(--inst); letter-spacing: .04em; margin-top: 8px; }
+.arch-v2 feFlood[flood-color="#2be179"] { flood-color: var(--ember-line); }
+.arch-v2 feFlood[flood-color="#ebfe00"] { flood-color: var(--warning-line); }
+.arch-v2 feFlood[flood-color="#00bdfd"] { flood-color: var(--advisor-line); }
+.arch-v2 feFlood[flood-color="#02fdff"] { flood-color: var(--success-line); }
+.arch-v2 feFlood[flood-color="#fb5998"] { flood-color: var(--auditor-line); }
+.arch-v2 feFlood[flood-color="#d87fd1"] { flood-color: var(--sig-line); }
+.arch-v2 polygon[fill="#02fdff"] { fill: var(--success-line); }
+.arch-v2 polygon[fill="#2be179"] { fill: var(--ember-line); }
+.arch-v2 polygon[fill="#d87fd1"] { fill: var(--sig-line); }
+.arch-v2 polygon[fill="#a5bcd1"] { fill: var(--sand); }
+.arch-v2 polygon[fill="#d58f8f"] { fill: var(--error-line); }
+.arch-v2 polygon[fill="#00bdfd"] { fill: var(--advisor-line); }
+.arch-v2 polygon[fill="#8cb9fc"] { fill: var(--learn-line); }
+.arch-v2 line[stroke="#2be179"] { stroke: var(--ember-line); }
+.arch-v2 rect[stroke="#2be179"] { stroke: var(--ember-line); }
+.arch-v2 text[fill="#e7eef5"] { fill: var(--parchment); }
+.arch-v2 text[fill="#2be179"] { fill: var(--ember); }
+.arch-v2 rect[fill="#12191f"] { fill: var(--obsidian); }
+.arch-v2 text[fill="#ebfe00"] { fill: var(--warning); }
+.arch-v2 rect[stroke="#02fdff"] { stroke: var(--success-line); }
+.arch-v2 text[fill="#d4e2ef"] { fill: var(--linen); }
+.arch-v2 text[fill="#a5bcd1"] { fill: var(--sand); }
+.arch-v2 text[fill="#02fdff"] { fill: var(--success); }
+.arch-v2 rect[stroke="#00bdfd"] { stroke: var(--advisor-line); }
+.arch-v2 text[fill="#00bdfd"] { fill: var(--advisor); }
+.arch-v2 rect[stroke="#ebfe00"] { stroke: var(--warning-line); }
+.arch-v2 text[fill="#a384fe"] { fill: var(--ai); }
+.arch-v2 rect[stroke="#d87fd1"] { stroke: var(--sig-line); }
+.arch-v2 text[fill="#d87fd1"] { fill: var(--sig); }
+.arch-v2 line[stroke="#a5bcd1"] { stroke: var(--sand); }
+.arch-v2 rect[stroke="#a384fe"] { stroke: var(--ai-line); }
+.arch-v2 line[stroke="#d87fd1"] { stroke: var(--sig-line); }
+.arch-v2 line[stroke="#02fdff"] { stroke: var(--success-line); }
+.arch-v2 rect[stroke="#fb5998"] { stroke: var(--auditor-line); }
+.arch-v2 text[fill="#fb5998"] { fill: var(--auditor); }
+.arch-v2 text[fill="#d58f8f"] { fill: var(--error); }
+.arch-v2 line[stroke="#00bdfd"] { stroke: var(--advisor-line); }
+.arch-v2 line[stroke="#fb5998"] { stroke: var(--auditor-line); }
+.arch-v2 line[stroke="#d58f8f"] { stroke: var(--error-line); }
+.arch-v2 text[fill="#8cb9fc"] { fill: var(--learn); }
+.arch-v2 line[stroke="#8cb9fc"] { stroke: var(--learn-line); }
+.arch-v2 rect[stroke="#8cb9fc"] { stroke: var(--learn-line); }
+.arch-v2 rect[stroke="#a5bcd1"] { stroke: var(--sand); }
+.arch-v2 [style*="color:#02fdff"] { color: var(--success) !important; }
+.arch-v2 [style*="color:#ebfe00"] { color: var(--warning) !important; }
+.arch-v2 [style*="color:#00bdfd"] { color: var(--advisor) !important; }
+.arch-v2 [style*="color:#d87fd1"] { color: var(--sig) !important; }
+.arch-v2 [style*="color:#a384fe"] { color: var(--ai) !important; }
+.arch-v2 [style*="color:#2be179"] { color: var(--ember) !important; }
+.arch-v2 [style*="color:#fb5998"] { color: var(--auditor) !important; }
+.arch-v2 [style*="border-color:#2be179"] { border-color: var(--ember-line) !important; }
+.arch-v2 [style*="border-color:#a5bcd1"] { border-color: var(--sand) !important; }
+.arch-v2 [style*="border-color:#d58f8f"] { border-color: var(--error-line) !important; }
+.arch-v2 [style*="border:1px solid #ebfe00"] { border-color: var(--warning-line) !important; }
+.arch-v2 [style*="border:1px solid #00bdfd"] { border-color: var(--advisor-line) !important; }
+.arch-v2 [style*="border:1px solid #02fdff"] { border-color: var(--success-line) !important; }
+.arch-v2 [style*="border:1px solid #2be179"] { border-color: var(--ember-line) !important; }
+.arch-v2 [style*="border:1px solid #fb5998"] { border-color: var(--auditor-line) !important; }
+.arch-v2 [style*="border:1px solid #a384fe"] { border-color: var(--ai-line) !important; }
+.arch-v2 [style*="border:1px solid #1abea5"] { border-color: var(--inst-line) !important; }
+.arch-v2 [style*="color:#1abea5"] { color: var(--inst) !important; }
+.arch-v2 [style*="border:1px solid #d87fd1"] { border-color: var(--sig-line) !important; }
+.arch-v2 [style*="border:1px dashed #8cb9fc"] { border-color: 1px dashed var(--learn-line) !important; }
+.arch-v2 [style*="color:#8cb9fc"] { color: var(--learn) !important; }
+[data-theme="light"] .arch-v2 {
+    --obsidian: #ffffff;
+    --forge: #f7fbfe;
+    --slag: #b9c6d2;
+    --sand: #5d6b77;
+    --linen: #092438;
+    --parchment: #092438;
+    --subtle: #586c7d;
+    --ember: #0d7a3e;
+    --char: #0b6834;
+    --success: #0b737f;
+    --warning: #666e05;
+    --error: #8b5e5d;
+    --advisor: #036b91;
+    --auditor: #bb0963;
+    --ai: #7828ec;
+    --inst: #12a28c;
+    --sig: #cd63c6;
+    --learn: #0265d9;
+    --tert: #9f3ebb;
+/* ══ rail line variants (scripts/arch-light-chroma.mjs) ══ */
+    /* Strokes, arrowheads and glow: 3:1 graphics floor, chroma maximised — this
+       is what keeps the diagram reading as neon rather than as a print schematic.
+       Text keeps the calmer 4.5:1 rail colour above. */
+    --ember-line: #029f50;  /* C0.162 · 3.01:1 */
+    --success-line: #0c999a;  /* C0.104 · 3.03:1 */
+    --warning-line: #859006;
+    --warning-wash: #ebfe00;  /* the dark theme's neon: a wash sits behind text, so it
+                                 carries no contrast floor and needs no olive detour */  /* C0.140 · 3.05:1 */
+    --error-line: #ff0c48;  /* C0.252 · 3.38:1 */
+    --advisor-line: #0693c6;  /* C0.126 · 3.05:1 */
+    --auditor-line: #ff0388;  /* C0.262 · 3.25:1 */
+    --ai-line: #7d04ff;  /* C0.292 · 5.48:1 */
+    --inst-line: #069a85;  /* C0.112 · 3.06:1 */
+    --sig-line: #f302ec;  /* C0.306 · 3.03:1 */
+    --learn-line: #0077ff;  /* C0.221 · 3.59:1 */
+    --tert-line: #d203ff;  /* C0.308 · 3.52:1 */
+    --shade: #ffffff;
+    --arch-page: #e9f0f7;
+    --docs:      var(--advisor);
+    --assure:    var(--warning);
+    --v20-bg:    var(--forge);
+    --v20-text:  var(--linen);
+    --v20-muted: var(--sand);
+    --bg: var(--arch-page); --text: var(--linen);
+    background: var(--arch-page);
+  }
+/* ── opchain.work additions ─────────────────────────────────────────────── */
+.arch-v2 .arch-title { margin: 0; }
+.arch-v2 .subtitle code { font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--linen); background: var(--ember-dim); border: .5px solid color-mix(in srgb, var(--ember) 20%, transparent); padding: 0 4px; border-radius: 3px; font-size: .95em; }
+.arch-v2 .bd-desc a { text-decoration: underline; text-underline-offset: 2px; }
+.arch-v2 .wa-rail { transition: opacity 1.5s ease, filter 1.5s ease; }
+.arch-v2 .wa-rail.dimmed { opacity: .12; filter: grayscale(.8) brightness(.5); }
+/* The cross-stage rail carries the declared-network colour (yellow), the add-on rail the runs-code colour (magenta). */
+.arch-v2 .wa-rail--cross { border-color: var(--warning-line); background: color-mix(in srgb, var(--warning-wash) 6%, transparent); }
+.arch-v2 .wa-rail--cross .irail-eyebrow { color: var(--warning); }
+.arch-v2 .wa-rail--cross .irail-anchor { border-color: var(--warning-line); }
+.arch-v2 .wa-rail--cross .irail-anchor:hover, .arch-v2 .wa-rail--cross .irail-anchor:focus-visible { background: color-mix(in srgb, var(--warning-wash) 14%, transparent); }
+.arch-v2 .wa-rail--cross .ia-do { color: var(--warning); }
+.arch-v2 .wa-rail--cross .ia-new { color: var(--warning); border-color: var(--warning-line); background: color-mix(in srgb, var(--warning-wash) 14%, transparent); }
+.arch-v2 .wa-rail--cross .wa-anchor--txt { border-color: var(--success-line); }
+.arch-v2 .wa-rail--cross .wa-anchor--txt .ia-do { color: var(--success); }
+.arch-v2 .wa-rail--cross .wa-anchor--txt .ia-new { color: var(--success); border-color: var(--success-line); background: color-mix(in srgb, var(--success) 14%, transparent); }
+.arch-v2 .wa-rail--tools { border-color: var(--sig-line); background: color-mix(in srgb, var(--sig) 7%, transparent); }
+.arch-v2 .wa-rail--tools .irail-eyebrow { color: var(--sig); }
+.arch-v2 .wa-rail--tools .irail-anchor { border-color: var(--sig-line); }
+.arch-v2 .wa-rail--tools .irail-anchor:hover, .arch-v2 .wa-rail--tools .irail-anchor:focus-visible { background: color-mix(in srgb, var(--sig) 16%, transparent); }
+.arch-v2 .wa-rail--tools .ia-do { color: var(--sig); }
+.arch-v2 .wa-rail--tools .ia-new { color: var(--sig); border-color: var(--sig-line); background: color-mix(in srgb, var(--sig) 14%, transparent); }
+.arch-v2 .wa-rail .irail-foot { font-size: .56rem; color: var(--sand); margin-top: 6px; }
+.arch-v2 .wa-anchor--kit { cursor: default; }
+/* variant b: bands left, rails stacked in a side column */
+.arch-v2 .wa-cols { display: grid; grid-template-columns: minmax(0, 2.1fr) minmax(240px, 1fr); gap: 14px; align-items: start; }
+.arch-v2 .wa-cols .bands-wrap { min-width: 0; }
+.arch-v2 .wa-cols .wa-rail { margin: 0 0 14px; }
+.arch-v2 .wa-cols .irail-anchors { flex-direction: column; }
+.arch-v2 .wa-cols .irail-anchor { flex: 1 1 auto; }
+.arch-v2[data-variant="b"] .lines-canvas { position: absolute; }
+@media (max-width: 960px) { .arch-v2 .wa-cols { grid-template-columns: 1fr; } }
+/* mobile/desktop swap (the same 767px breakpoint as /architecture) */
+.work-arch-desktop { display: block; }
+.work-arch-mobile { display: none; }
+@media (max-width: 767px) {
+  .work-arch-desktop { display: none; }
+  .work-arch-mobile { display: block; }
+}
+/* Light theme: the yellow/magenta remaps the extracted sheet lacks for this page's cards. */
+.arch-v2 rect[fill="rgba(235,254,0,.10)"] { fill: color-mix(in srgb, var(--warning-wash) 10%, transparent); }
+.arch-v2 rect[stroke="rgba(235,254,0,0.6)"] { stroke: color-mix(in srgb, var(--warning-line) 60%, transparent); }
+.arch-v2 rect[fill="rgba(2,253,255,.10)"] { fill: color-mix(in srgb, var(--success-line) 10%, transparent); }
+.arch-v2 rect[stroke="rgba(2,253,255,0.6)"] { stroke: color-mix(in srgb, var(--success-line) 60%, transparent); }
+.arch-v2 line[stroke="#d87fd1"] { stroke: var(--sig-line); }

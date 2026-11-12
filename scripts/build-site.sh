@@ -99,7 +99,10 @@ if [[ "${OPCHAIN_SHIP_WORK:-}" == "1" ]]; then
   echo "[build-site] clean-folder install check for the ow- zips and docs"
   node "${ROOT}/scripts/check-work-install.mjs"
 else
-  echo "[build-site] ow- outputs withheld (OPCHAIN_SHIP_WORK is not 1): checking none are in public/"
+  # The /work site section (site/src/pages/work, the ow- catalog's `outputs.site`)
+  # is an ow- output too: Astro builds it into dist/, so drop it from public/ here.
+  rm -rf -- "${PUBLIC}/work"
+  echo "[build-site] ow- outputs withheld (OPCHAIN_SHIP_WORK is not 1): /work pages removed; checking none are in public/"
   node "${ROOT}/scripts/check-work-install.mjs" --expect-withheld
 fi
 

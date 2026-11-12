@@ -58,7 +58,7 @@ The user-run setup steps that `ow-tools doctor` prints reach: Homebrew (packages
 
 | File | SHA-256 |
 |---|---|
-| `.claude-plugin/marketplace.json` | `56c0b607cbe5064b60f27bb6adbadf98a6128cd9d84bcc4e215e131adb158697` |
+| `.claude-plugin/marketplace.json` | `6952ccea9a3cdd90a8f6dec88bc5f8f110e68495b9cd65abe0c1ac288ad757b2` |
 | `.claude-plugin/plugin.json` | `3ec2dd179f4af9624dd269289f3df360d00544da00fe5667f8ce0a4b61df6888` |
 | `bin/ow-tools` | `c1349c0fd445a330bb32a6912598da7fc37dd3d8f1da33759dad3a099f42368b` |
 | `examples/brand.yaml` | `76e6f434b574cece3a1fd5aab5f271ad12128d132b17afdfb62e9df619326bd6` |

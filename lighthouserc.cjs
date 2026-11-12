@@ -60,6 +60,13 @@ module.exports = {
         "http://127.0.0.1:4321/demo",
         "http://127.0.0.1:4321/changelog",
         "http://127.0.0.1:4321/install",
+        // 2.2 opchain.work (WEB-02), previewed on this branch. Calibrated locally on 2026-10-30 with
+        // lhci collect + assert, three runs each: /work Perf 0.96–1.00, A11y
+        // 1.00, Best 1.00, SEO 1.00; /work/ow-start 1.00 on all four. The
+        // pages share one layout (WorkPage.astro), so the overview and one
+        // skill page are enough.
+        "http://127.0.0.1:4321/work",
+        "http://127.0.0.1:4321/work/ow-start",
       ],
       numberOfRuns: 3,
       settings: { preset: "desktop" },
@@ -74,6 +81,8 @@ module.exports = {
         { matchingUrlPattern: "/demo$",                     assertions: ROUTE_GATE },
         { matchingUrlPattern: "/changelog$",                assertions: ROUTE_GATE },
         { matchingUrlPattern: "/install$",                  assertions: ROUTE_GATE },
+        { matchingUrlPattern: "/work$",                     assertions: ROUTE_GATE },
+        { matchingUrlPattern: "/work/ow-start$",            assertions: ROUTE_GATE },
       ],
     },
     upload: { target: "temporary-public-storage" },

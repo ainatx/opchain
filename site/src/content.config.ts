@@ -44,7 +44,10 @@ const skills = defineCollection({
     base: process.env.OPCHAIN_SKILLS_DIR ?? "../skills",
   }),
   schema: z.object({
-    name: z.string(),
+    // The oc- catalog only: an ow- skill pointed at this collection (or an
+    // oc- skill at `work`) fails the build instead of rendering in the wrong
+    // section. catalogs.json keeps the two catalogs apart by prefix.
+    name: z.string().regex(/^oc-/, "skills collection: name must start with oc-"),
     displayName: z.string(),
     version: z.string().regex(/^\d+\.\d+\.\d+$/, "version must be semver (e.g. 1.0.0)"),
     shortDesc: z.string().min(1).max(120),
@@ -98,4 +101,38 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { skills, blog };
+// The ow- catalog (skills-work/): opchain.work, the planning skills for client
+// work, rendered under /work. Agent Skills frontmatter only (name, description,
+// license, compatibility, allowed-tools, metadata), with the catalog fields as
+// strings under `metadata` — the shape scripts/gen-skills-catalog.mjs validates
+// for the "agent-skills" frontmatter kind. `.strict()` rejects any other key so
+// an oc- style field (displayName, phases, …) cannot creep in. The collection
+// is in NO oc- build output (plugin, zip, docs, flags, MCP catalog, mirror stay
+// null in catalogs.json); `outputs.site` names this one surface.
+const work = defineCollection({
+  loader: glob({
+    pattern: "*/SKILL.md",
+    base: process.env.OPCHAIN_WORK_SKILLS_DIR ?? "../skills-work",
+  }),
+  schema: z
+    .object({
+      name: z.string().regex(/^ow-/, "work collection: name must start with ow-"),
+      description: z.string().min(1),
+      license: z.string().optional(),
+      compatibility: z.string().optional(),
+      "allowed-tools": z.string().optional(),
+      metadata: z
+        .object({
+          version: z.string().regex(/^\d+\.\d+\.\d+$/, "metadata.version must be semver (e.g. 1.0.0)"),
+          catalog: z.string(),
+          protocol: z.string(),
+          bundle: z.enum(["core", "connected"]),
+          network: z.enum(["none", "declared"]),
+          commands: z.string(),
+        })
+        .strict(),
+    })
+    .strict(),
+});
+
+export const collections = { skills, blog, work };

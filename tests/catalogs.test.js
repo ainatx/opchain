@@ -33,8 +33,8 @@ describe("catalogs.json", () => {
     ]);
   });
 
-  it("gives the ow- catalog its own zip, docs tree and mirror path, and keeps it out of the plugin, flags and MCP catalog", () => {
-    expect(Object.keys(byId.ow.outputs).sort()).toEqual(["docs", "flagRegistry", "mcpCatalog", "mirror", "plugin", "zip"]);
+  it("gives the ow- catalog its own zip, docs tree, mirror path and /work site section, and keeps it out of the plugin, flags and MCP catalog", () => {
+    expect(Object.keys(byId.ow.outputs).sort()).toEqual(["docs", "flagRegistry", "mcpCatalog", "mirror", "plugin", "site", "zip"]);
     expect(byId.ow.outputs).toEqual({
       plugin: null,
       zip: "public/opchain-work-skills.zip",
@@ -42,9 +42,11 @@ describe("catalogs.json", () => {
       flagRegistry: null,
       mcpCatalog: null,
       mirror: ".github/workflows/mirror-public.yml",
+      site: "site/src/pages/work",
     });
     // Never the oc- paths: the oc- zip, docs tree and plugin stay oc- only.
     for (const k of ["zip", "docs"]) expect(byId.ow.outputs[k]).not.toBe(byId.oc.outputs[k]);
+    expect(existsSync(join(ROOT, byId.ow.outputs.site, "index.astro"))).toBe(true);
     expect(Object.values(byId.oc.outputs).every((v) => typeof v === "string")).toBe(true);
   });
 

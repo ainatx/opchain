@@ -4,6 +4,7 @@ import Eyebrow from "../components/ui/Eyebrow.astro";
 import Card from "../components/ui/Card.astro";
 import Button from "../components/ui/Button.astro";
 import Badge from "../components/ui/Badge.astro";
+import ReleaseTag from "../components/ReleaseTag.astro";
 
 interface Step {
   cmd: string;
@@ -134,6 +135,12 @@ const deliverables: Deliverable[] = [
         commit by the pre-commit gate once the repository is enrolled with <code>/oc-enroll</code>.
         The <a href="/architecture#enforcement-map">enforcement map</a> says
         where each gate is held.
+      </p>
+      <p class="blurb note">
+        Planning the job rather than building it? The nine ow- planning skills at
+        <a href="/work">opchain.work</a> cover the fit call, the Build Plan and
+        quote, acceptance, the handoff and monthly care, in Claude Code, with
+        your own CRM as the record. <ReleaseTag theme="ow" />
       </p>
     </section>
 
